@@ -134,6 +134,36 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
                 height: Math.max(MIN_SIZE, s.height + e.delta.y),
               }));
             }
+            // corner resize
+            else if (e.active.id.endsWith("_handleResizeTopRight")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                width: Math.max(MIN_SIZE, s.width + e.delta.x),
+                top: s.top + Math.min(s.height - MIN_SIZE, e.delta.y),
+                height: Math.max(MIN_SIZE, s.height - e.delta.y),
+              }));
+            } else if (e.active.id.endsWith("_handleResizeTopLeft")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                top: s.top + Math.min(s.height - MIN_SIZE, e.delta.y),
+                height: Math.max(MIN_SIZE, s.height - e.delta.y),
+                left: s.left + Math.min(s.width - MIN_SIZE, e.delta.x),
+                width: Math.max(MIN_SIZE, s.width - e.delta.x),
+              }));
+            } else if (e.active.id.endsWith("_handleResizeBottomRight")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                height: Math.max(MIN_SIZE, s.height + e.delta.y),
+                width: Math.max(MIN_SIZE, s.width + e.delta.x),
+              }));
+            } else if (e.active.id.endsWith("_handleResizeBottomLeft")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                height: Math.max(MIN_SIZE, s.height + e.delta.y),
+                left: s.left + Math.min(s.width - MIN_SIZE, e.delta.x),
+                width: Math.max(MIN_SIZE, s.width - e.delta.x),
+              }));
+            }
           }
         }}
       >

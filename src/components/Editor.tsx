@@ -115,6 +115,23 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
                   }
                   return s;
                 });
+              } else if (e.active.id.endsWith("_handleResizeTop")) {
+                const id = e.active.data.current?.id as number;
+                return prev.map((s) => {
+                  if (s.id === id) {
+                    s.top += Math.min(s.height, e.delta.y);
+                    s.height = Math.max(1, s.height - e.delta.y);
+                  }
+                  return s;
+                });
+              } else if (e.active.id.endsWith("_handleResizeBottom")) {
+                const id = e.active.data.current?.id as number;
+                return prev.map((s) => {
+                  if (s.id === id) {
+                    s.height = Math.max(1, s.height + e.delta.y);
+                  }
+                  return s;
+                });
               }
             }
             return prev;
@@ -209,13 +226,24 @@ const ShapeDisplay = ({
     id: shape.id.toString() + "_handleResizeLeft",
     data: { id: shape.id },
   });
+  const handleResizeTop = useDraggable({
+    id: shape.id.toString() + "_handleResizeTop",
+    data: { id: shape.id },
+  });
+  const handleResizeBottom = useDraggable({
+    id: shape.id.toString() + "_handleResizeBottom",
+    data: { id: shape.id },
+  });
   return (
     <div
       ref={setNodeRef}
       className="absolute"
       {...listeners}
       style={{
-        top: shape.top + (transform?.y ?? 0),
+        top:
+          shape.top +
+          (transform?.y ?? 0) +
+          Math.min(shape.height, handleResizeTop.transform?.y ?? 0),
         left:
           shape.left +
           (transform?.x ?? 0) +
@@ -226,7 +254,12 @@ const ShapeDisplay = ({
             (handleResizeRight.transform?.x ?? 0) -
             (handleResizeLeft.transform?.x ?? 0)
         ),
-        height: shape.height,
+        height: Math.max(
+          1,
+          shape.height +
+            (handleResizeBottom.transform?.y ?? 0) -
+            (handleResizeTop.transform?.y ?? 0)
+        ),
         background: shape.color,
       }}
     >
@@ -239,6 +272,16 @@ const ShapeDisplay = ({
         className="absolute left-0 h-full w-0.5 cursor-w-resize bg-white/50"
         ref={handleResizeLeft.setNodeRef}
         {...handleResizeLeft.listeners}
+      ></div>
+      <div
+        className="absolute top-0 h-0.5 w-full cursor-n-resize bg-white/50"
+        ref={handleResizeTop.setNodeRef}
+        {...handleResizeTop.listeners}
+      ></div>
+      <div
+        className="absolute bottom-0 h-0.5 w-full cursor-n-resize bg-white/50"
+        ref={handleResizeBottom.setNodeRef}
+        {...handleResizeBottom.listeners}
       ></div>
     </div>
   );

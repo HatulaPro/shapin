@@ -7,6 +7,7 @@ import { SquareIcon } from "./icons/SquareIcon";
 import { TriangleIcon } from "./icons/TriangleIcon";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 
+const MIN_SIZE = 10;
 const ShapeColors = [
   "#000000",
   "#235789",
@@ -63,8 +64,20 @@ const InteractiveEditor = ({
 export const Editor = ({ isActive }: { isActive: boolean }) => {
   const [background, setBackground] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<ShapeColor>("#235789");
-  const [toolboxMod, setToolboxMod] = useState<"shapes" | "colors">("colors");
+  const [toolboxMod, setToolboxMod] = useState<"shapes" | "colors">("shapes");
   const [shapes, setShapes] = useState<Shape[]>([]);
+
+  function updateShapeById(id: number, modifier: (oldShape: Shape) => Shape) {
+    setShapes((prev) => {
+      // Normal movement
+      return prev.map((s) => {
+        if (s.id === id) {
+          return modifier(s);
+        }
+        return s;
+      });
+    });
+  }
 
   return (
     <div
@@ -87,55 +100,41 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
       <DndContext
         onDragEnd={(e) => {
           console.log(e);
-          setShapes((prev) => {
-            if (typeof e.active.id === "number") {
-              return prev.map((s) => {
-                if (s.id === e.active.id) {
-                  s.left += e.delta.x;
-                  s.top += e.delta.y;
-                }
-                return s;
-              });
-            } else {
-              if (e.active.id.endsWith("_handleResizeRight")) {
-                const id = e.active.data.current?.id as number;
-                return prev.map((s) => {
-                  if (s.id === id) {
-                    s.width = Math.max(1, s.width + e.delta.x);
-                  }
-                  return s;
-                });
-              } else if (e.active.id.endsWith("_handleResizeLeft")) {
-                const id = e.active.data.current?.id as number;
-                return prev.map((s) => {
-                  if (s.id === id) {
-                    s.left += Math.min(s.width, e.delta.x);
-                    s.width = Math.max(1, s.width - e.delta.x);
-                    console.log(s);
-                  }
-                  return s;
-                });
-              } else if (e.active.id.endsWith("_handleResizeTop")) {
-                const id = e.active.data.current?.id as number;
-                return prev.map((s) => {
-                  if (s.id === id) {
-                    s.top += Math.min(s.height, e.delta.y);
-                    s.height = Math.max(1, s.height - e.delta.y);
-                  }
-                  return s;
-                });
-              } else if (e.active.id.endsWith("_handleResizeBottom")) {
-                const id = e.active.data.current?.id as number;
-                return prev.map((s) => {
-                  if (s.id === id) {
-                    s.height = Math.max(1, s.height + e.delta.y);
-                  }
-                  return s;
-                });
-              }
+          if (typeof e.active.id === "number") {
+            // Normal movement
+            updateShapeById(e.active.id, (s) => ({
+              ...s,
+              left: s.left + e.delta.x,
+              top: s.top + e.delta.y,
+            }));
+          } else {
+            const id = e.active.data.current?.id as number | undefined;
+            if (!id) return;
+            // side resize
+            if (e.active.id.endsWith("_handleResizeRight")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                width: Math.max(MIN_SIZE, s.width + e.delta.x),
+              }));
+            } else if (e.active.id.endsWith("_handleResizeLeft")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                left: s.left + Math.min(s.width - MIN_SIZE, e.delta.x),
+                width: Math.max(MIN_SIZE, s.width - e.delta.x),
+              }));
+            } else if (e.active.id.endsWith("_handleResizeTop")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                top: s.top + Math.min(s.height - MIN_SIZE, e.delta.y),
+                height: Math.max(MIN_SIZE, s.height - e.delta.y),
+              }));
+            } else if (e.active.id.endsWith("_handleResizeBottom")) {
+              updateShapeById(id, (s) => ({
+                ...s,
+                height: Math.max(MIN_SIZE, s.height + e.delta.y),
+              }));
             }
-            return prev;
-          });
+          }
         }}
       >
         <InteractiveEditor shapes={shapes} background={background} />
@@ -218,6 +217,7 @@ const ShapeDisplay = ({
   const { setNodeRef, transform, listeners } = useDraggable({
     id: shape.id,
   });
+
   const handleResizeRight = useDraggable({
     id: shape.id.toString() + "_handleResizeRight",
     data: { id: shape.id },
@@ -234,6 +234,45 @@ const ShapeDisplay = ({
     id: shape.id.toString() + "_handleResizeBottom",
     data: { id: shape.id },
   });
+
+  const handleResizeTopLeft = useDraggable({
+    id: shape.id.toString() + "_handleResizeTopLeft",
+    data: { id: shape.id },
+  });
+  const handleResizeTopRight = useDraggable({
+    id: shape.id.toString() + "_handleResizeTopRight",
+    data: { id: shape.id },
+  });
+  const handleResizeBottomLeft = useDraggable({
+    id: shape.id.toString() + "_handleResizeBottomLeft",
+    data: { id: shape.id },
+  });
+  const handleResizeBottomRight = useDraggable({
+    id: shape.id.toString() + "_handleResizeBottomRight",
+    data: { id: shape.id },
+  });
+
+  const topResize =
+    handleResizeTop.transform?.y ??
+    handleResizeTopLeft.transform?.y ??
+    handleResizeTopRight.transform?.y ??
+    0;
+  const bottomResize =
+    handleResizeBottom.transform?.y ??
+    handleResizeBottomLeft.transform?.y ??
+    handleResizeBottomRight.transform?.y ??
+    0;
+  const leftResize =
+    handleResizeLeft.transform?.x ??
+    handleResizeTopLeft.transform?.x ??
+    handleResizeBottomLeft.transform?.x ??
+    0;
+  const rightResize =
+    handleResizeRight.transform?.x ??
+    handleResizeTopRight.transform?.x ??
+    handleResizeBottomRight.transform?.x ??
+    0;
+
   return (
     <div
       ref={setNodeRef}
@@ -243,23 +282,13 @@ const ShapeDisplay = ({
         top:
           shape.top +
           (transform?.y ?? 0) +
-          Math.min(shape.height, handleResizeTop.transform?.y ?? 0),
+          Math.min(shape.height - MIN_SIZE, topResize),
         left:
           shape.left +
           (transform?.x ?? 0) +
-          Math.min(shape.width, handleResizeLeft.transform?.x ?? 0),
-        width: Math.max(
-          1,
-          shape.width +
-            (handleResizeRight.transform?.x ?? 0) -
-            (handleResizeLeft.transform?.x ?? 0)
-        ),
-        height: Math.max(
-          1,
-          shape.height +
-            (handleResizeBottom.transform?.y ?? 0) -
-            (handleResizeTop.transform?.y ?? 0)
-        ),
+          Math.min(shape.width - MIN_SIZE, leftResize),
+        width: Math.max(MIN_SIZE, shape.width + rightResize - leftResize),
+        height: Math.max(MIN_SIZE, shape.height + bottomResize - topResize),
         background: shape.color,
       }}
     >
@@ -282,6 +311,27 @@ const ShapeDisplay = ({
         className="absolute bottom-0 h-0.5 w-full cursor-n-resize bg-white/50"
         ref={handleResizeBottom.setNodeRef}
         {...handleResizeBottom.listeners}
+      ></div>
+
+      <div
+        className="absolute top-0 left-0 h-0.5 w-0.5 cursor-nw-resize bg-white/50"
+        ref={handleResizeTopLeft.setNodeRef}
+        {...handleResizeTopLeft.listeners}
+      ></div>
+      <div
+        className="absolute top-0 right-0 h-0.5 w-0.5 cursor-ne-resize bg-white/50"
+        ref={handleResizeTopRight.setNodeRef}
+        {...handleResizeTopRight.listeners}
+      ></div>
+      <div
+        className="absolute bottom-0 left-0 h-0.5 w-0.5 cursor-sw-resize bg-white/50"
+        ref={handleResizeBottomLeft.setNodeRef}
+        {...handleResizeBottomLeft.listeners}
+      ></div>
+      <div
+        className="absolute bottom-0 right-0 h-0.5 w-0.5 cursor-se-resize bg-white/50"
+        ref={handleResizeBottomRight.setNodeRef}
+        {...handleResizeBottomRight.listeners}
       ></div>
     </div>
   );

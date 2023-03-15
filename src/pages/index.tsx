@@ -22,16 +22,16 @@ const Home: NextPage = () => {
 
 export default Home;
 
-const Header = () => {
-  return (
-    <div className="fixed top-0 left-0 flex w-full gap-2 bg-[#121232] p-4 text-white">
-      <div className="flex items-center gap-2">
-        <div className="h-10 w-10 rounded-full border-2 border-white bg-yellow-400" />
-        <span>my_username</span>
-      </div>
-    </div>
-  );
-};
+// const Header = () => {
+//   return (
+//     <div className="fixed top-0 left-0 flex w-full gap-2 bg-[#121232] p-4 text-white">
+//       <div className="flex items-center gap-2">
+//         <div className="h-10 w-10 rounded-full border-2 border-white bg-yellow-400" />
+//         <span>my_username</span>
+//       </div>
+//     </div>
+//   );
+// };
 
 const PostsViewer = () => {
   return (

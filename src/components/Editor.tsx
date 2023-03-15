@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type RefObject, useEffect, useState } from "react";
 import { cx } from "~/utils/general";
 import { CircleIcon } from "./icons/CircleIcon";
 import { ClearIcon } from "./icons/ClearIcon";
@@ -31,12 +31,19 @@ type Shape = {
 const InteractiveEditor = ({
   shapes,
   background,
+  activeShapeId,
+  setActiveShapeId,
 }: {
   shapes: Shape[];
   background: string | null;
+  activeShapeId: number;
+  setActiveShapeId: (n: number) => void;
 }) => {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, node } = useDroppable({
     id: "droppable",
+  });
+  useClickOutside(node, () => {
+    setActiveShapeId(-1);
   });
   return (
     <div
@@ -48,7 +55,8 @@ const InteractiveEditor = ({
     >
       {shapes.map((shape, idx) => (
         <ShapeDisplay
-          key={idx}
+          key={shape.id}
+          isActive={activeShapeId === shape.id}
           shape={shape}
           updateShape={(newShape) => {
             shapes[idx] = newShape;
@@ -61,11 +69,40 @@ const InteractiveEditor = ({
     </div>
   );
 };
+
+type ClickEvent = MouseEvent | TouchEvent;
+function useClickOutside<T extends HTMLElement = HTMLElement>(
+  ref: RefObject<T>,
+  handler: (event: ClickEvent) => void
+) {
+  useEffect(() => {
+    const listener = (event: ClickEvent) => {
+      const el = ref?.current;
+      if (
+        el !== event.target &&
+        (!el || el.contains((event?.target as Node) || null))
+      ) {
+        return;
+      }
+      handler(event);
+    };
+
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  }, [ref, handler]);
+}
+
 export const Editor = ({ isActive }: { isActive: boolean }) => {
   const [background, setBackground] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<ShapeColor>("#235789");
   const [toolboxMod, setToolboxMod] = useState<"shapes" | "colors">("shapes");
   const [shapes, setShapes] = useState<Shape[]>([]);
+  const [activeShapeId, setActiveShapeId] = useState<number>(-1);
 
   function updateShapeById(id: number, modifier: (oldShape: Shape) => Shape) {
     setShapes((prev) => {
@@ -98,8 +135,21 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
       onDragOver={(e) => e.preventDefault()}
     >
       <DndContext
+        onDragStart={(e) => {
+          if (typeof e.active.id === "number") {
+            // Normal movement
+            updateShapeById(e.active.id, (s) => ({
+              ...s,
+              zIndex: Math.max(...shapes.map((x) => x.zIndex), 0) + 1,
+            }));
+            setActiveShapeId(e.active.id);
+          } else {
+            const id = e.active.data.current?.id as number | undefined;
+            if (!id) return;
+            setActiveShapeId(id);
+          }
+        }}
         onDragEnd={(e) => {
-          console.log(e);
           if (typeof e.active.id === "number") {
             // Normal movement
             updateShapeById(e.active.id, (s) => ({
@@ -167,7 +217,12 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
           }
         }}
       >
-        <InteractiveEditor shapes={shapes} background={background} />
+        <InteractiveEditor
+          activeShapeId={activeShapeId}
+          setActiveShapeId={setActiveShapeId}
+          shapes={shapes}
+          background={background}
+        />
       </DndContext>
       <div className="flex w-full bg-zinc-900 p-2 text-2xl">
         <div
@@ -239,10 +294,12 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
 
 const ShapeDisplay = ({
   shape,
+  isActive,
 }: //   updateShape,
 {
   shape: Shape;
   updateShape: (newShape: Shape) => void;
+  isActive: boolean;
 }) => {
   const { setNodeRef, transform, listeners } = useDraggable({
     id: shape.id,
@@ -320,49 +377,54 @@ const ShapeDisplay = ({
         width: Math.max(MIN_SIZE, shape.width + rightResize - leftResize),
         height: Math.max(MIN_SIZE, shape.height + bottomResize - topResize),
         background: shape.color,
+        zIndex: shape.zIndex,
       }}
     >
-      <div
-        className="absolute right-0 h-full w-0.5 cursor-w-resize bg-white/50"
-        ref={handleResizeRight.setNodeRef}
-        {...handleResizeRight.listeners}
-      ></div>
-      <div
-        className="absolute left-0 h-full w-0.5 cursor-w-resize bg-white/50"
-        ref={handleResizeLeft.setNodeRef}
-        {...handleResizeLeft.listeners}
-      ></div>
-      <div
-        className="absolute top-0 h-0.5 w-full cursor-n-resize bg-white/50"
-        ref={handleResizeTop.setNodeRef}
-        {...handleResizeTop.listeners}
-      ></div>
-      <div
-        className="absolute bottom-0 h-0.5 w-full cursor-n-resize bg-white/50"
-        ref={handleResizeBottom.setNodeRef}
-        {...handleResizeBottom.listeners}
-      ></div>
-
-      <div
-        className="absolute top-0 left-0 h-0.5 w-0.5 cursor-nw-resize bg-white/50"
-        ref={handleResizeTopLeft.setNodeRef}
-        {...handleResizeTopLeft.listeners}
-      ></div>
-      <div
-        className="absolute top-0 right-0 h-0.5 w-0.5 cursor-ne-resize bg-white/50"
-        ref={handleResizeTopRight.setNodeRef}
-        {...handleResizeTopRight.listeners}
-      ></div>
-      <div
-        className="absolute bottom-0 left-0 h-0.5 w-0.5 cursor-sw-resize bg-white/50"
-        ref={handleResizeBottomLeft.setNodeRef}
-        {...handleResizeBottomLeft.listeners}
-      ></div>
-      <div
-        className="absolute bottom-0 right-0 h-0.5 w-0.5 cursor-se-resize bg-white/50"
-        ref={handleResizeBottomRight.setNodeRef}
-        {...handleResizeBottomRight.listeners}
-      ></div>
+      {isActive && (
+        <>
+          {" "}
+          <div
+            className="absolute right-0 h-full w-0.5 cursor-w-resize bg-white/50"
+            ref={handleResizeRight.setNodeRef}
+            {...handleResizeRight.listeners}
+          ></div>
+          <div
+            className="absolute left-0 h-full w-0.5 cursor-w-resize bg-white/50"
+            ref={handleResizeLeft.setNodeRef}
+            {...handleResizeLeft.listeners}
+          ></div>
+          <div
+            className="absolute top-0 h-0.5 w-full cursor-n-resize bg-white/50"
+            ref={handleResizeTop.setNodeRef}
+            {...handleResizeTop.listeners}
+          ></div>
+          <div
+            className="absolute bottom-0 h-0.5 w-full cursor-n-resize bg-white/50"
+            ref={handleResizeBottom.setNodeRef}
+            {...handleResizeBottom.listeners}
+          ></div>
+          <div
+            className="absolute top-0 left-0 h-0.5 w-0.5 cursor-nw-resize bg-white/50"
+            ref={handleResizeTopLeft.setNodeRef}
+            {...handleResizeTopLeft.listeners}
+          ></div>
+          <div
+            className="absolute top-0 right-0 h-0.5 w-0.5 cursor-ne-resize bg-white/50"
+            ref={handleResizeTopRight.setNodeRef}
+            {...handleResizeTopRight.listeners}
+          ></div>
+          <div
+            className="absolute bottom-0 left-0 h-0.5 w-0.5 cursor-sw-resize bg-white/50"
+            ref={handleResizeBottomLeft.setNodeRef}
+            {...handleResizeBottomLeft.listeners}
+          ></div>
+          <div
+            className="absolute bottom-0 right-0 h-0.5 w-0.5 cursor-se-resize bg-white/50"
+            ref={handleResizeBottomRight.setNodeRef}
+            {...handleResizeBottomRight.listeners}
+          ></div>
+        </>
+      )}
     </div>
   );
 };

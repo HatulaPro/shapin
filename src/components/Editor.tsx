@@ -116,6 +116,22 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
     });
   }
 
+  function addShape(type: Shape["type"]) {
+    setShapes((prev) => [
+      ...prev,
+      {
+        id: Math.max(...prev.map((x) => x.id), 0) + 1,
+        color: currentColor,
+        left: 0,
+        top: 0,
+        width: 32,
+        height: 32,
+        zIndex: 0,
+        type,
+      },
+    ]);
+  }
+
   return (
     <div
       className={cx(
@@ -231,29 +247,13 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
             toolboxMod === "colors" ? "flex-0 w-0" : "flex-1"
           )}
         >
-          <button
-            onClick={() =>
-              setShapes((prev) => [
-                ...prev,
-                {
-                  id: Math.max(...prev.map((x) => x.id), 0) + 1,
-                  color: currentColor,
-                  left: 0,
-                  top: 0,
-                  width: 32,
-                  height: 32,
-                  zIndex: 0,
-                  type: "SQUARE",
-                },
-              ])
-            }
-          >
+          <button onClick={() => addShape("SQUARE")}>
             <SquareIcon style={{ color: "white" }} />
           </button>
-          <button>
+          <button onClick={() => addShape("TRIANGLE")}>
             <TriangleIcon style={{ color: "white" }} />
           </button>
-          <button>
+          <button onClick={() => addShape("CIRCLE")}>
             <CircleIcon style={{ color: "white" }} />
           </button>
         </div>
@@ -376,10 +376,22 @@ const ShapeDisplay = ({
           Math.min(shape.width - MIN_SIZE, leftResize),
         width: Math.max(MIN_SIZE, shape.width + rightResize - leftResize),
         height: Math.max(MIN_SIZE, shape.height + bottomResize - topResize),
-        background: shape.color,
         zIndex: shape.zIndex,
       }}
     >
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="absolute h-full w-full"
+      >
+        {shape.type === "SQUARE" ? (
+          <rect x="0" y="0" width="100" height="100" fill={shape.color} />
+        ) : shape.type === "TRIANGLE" ? (
+          <polygon points="50 15, 100 100, 0 100" fill={shape.color} />
+        ) : (
+          <circle cx="50" cy="50" r="50" fill={shape.color} />
+        )}
+      </svg>
       {isActive && (
         <>
           {" "}

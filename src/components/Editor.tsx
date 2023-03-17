@@ -1,4 +1,10 @@
-import { type RefObject, useEffect, useState } from "react";
+import {
+  type RefObject,
+  type MutableRefObject,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { cx } from "~/utils/general";
 import { CircleIcon } from "./icons/CircleIcon";
 import { ClearIcon } from "./icons/ClearIcon";
@@ -33,18 +39,24 @@ const InteractiveEditor = ({
   background,
   activeShapeId,
   setActiveShapeId,
+  legalArea,
 }: {
   shapes: Shape[];
   background: string | null;
   activeShapeId: number;
   setActiveShapeId: (n: number) => void;
+  legalArea: MutableRefObject<HTMLElement | null>;
 }) => {
   const { setNodeRef, node } = useDroppable({
     id: "droppable",
   });
-  useClickOutside(node, () => {
-    setActiveShapeId(-1);
-  });
+  useClickOutside(
+    node,
+    () => {
+      setActiveShapeId(-1);
+    },
+    legalArea
+  );
   return (
     <div
       className="relative aspect-square w-full border-2 border-white/20 bg-opacity-60 bg-contain bg-center bg-no-repeat"
@@ -73,17 +85,17 @@ const InteractiveEditor = ({
 type ClickEvent = MouseEvent | TouchEvent;
 function useClickOutside<T extends HTMLElement = HTMLElement>(
   ref: RefObject<T>,
-  handler: (event: ClickEvent) => void
+  handler: (event: ClickEvent) => void,
+  legalArea: MutableRefObject<HTMLElement | null>
 ) {
   useEffect(() => {
     const listener = (event: ClickEvent) => {
       const el = ref?.current;
-      if (
-        el !== event.target &&
-        (!el || el.contains((event?.target as Node) || null))
-      ) {
+      const target = (event?.target as Node) || null;
+      if (el !== event.target && (!el || el.contains(target))) {
         return;
       }
+      if (legalArea.current?.contains(target)) return;
       handler(event);
     };
 
@@ -94,7 +106,7 @@ function useClickOutside<T extends HTMLElement = HTMLElement>(
       document.removeEventListener("mousedown", listener);
       document.removeEventListener("touchstart", listener);
     };
-  }, [ref, handler]);
+  }, [ref, handler, legalArea]);
 }
 
 export const Editor = ({ isActive }: { isActive: boolean }) => {
@@ -103,6 +115,8 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
   const [toolboxMod, setToolboxMod] = useState<"shapes" | "colors">("shapes");
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [activeShapeId, setActiveShapeId] = useState<number>(-1);
+
+  const toolboxRef = useRef<HTMLDivElement>(null);
 
   function updateShapeById(id: number, modifier: (oldShape: Shape) => Shape) {
     setShapes((prev) => {
@@ -117,10 +131,11 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
   }
 
   function addShape(type: Shape["type"]) {
-    setShapes((prev) => [
-      ...prev,
+    const nextId = Math.max(...shapes.map((x) => x.id), 0) + 1;
+    setShapes([
+      ...shapes,
       {
-        id: Math.max(...prev.map((x) => x.id), 0) + 1,
+        id: nextId,
         color: currentColor,
         left: 0,
         top: 0,
@@ -130,6 +145,7 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
         type,
       },
     ]);
+    setActiveShapeId(nextId);
   }
 
   return (
@@ -238,9 +254,10 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
           setActiveShapeId={setActiveShapeId}
           shapes={shapes}
           background={background}
+          legalArea={toolboxRef}
         />
       </DndContext>
-      <div className="flex w-full bg-zinc-900 p-2 text-2xl">
+      <div ref={toolboxRef} className="flex w-full bg-zinc-900 p-2 text-2xl">
         <div
           className={cx(
             "flex gap-2 overflow-hidden transition-all",
@@ -268,7 +285,15 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
             {ShapeColors.map((color) => (
               <button
                 key={color}
-                onClick={() => setCurrentColor(color)}
+                onClick={() => {
+                  if (activeShapeId !== -1) {
+                    updateShapeById(activeShapeId, (oldShape) => ({
+                      ...oldShape,
+                      color: color,
+                    }));
+                  }
+                  setCurrentColor(color);
+                }}
                 className="block aspect-square h-full rounded-full"
                 style={{ background: color }}
               ></button>

@@ -11,7 +11,15 @@ import { ClearIcon } from "./icons/ClearIcon";
 import { ColorIcon } from "./icons/ColorIcon";
 import { SquareIcon } from "./icons/SquareIcon";
 import { TriangleIcon } from "./icons/TriangleIcon";
-import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
+import {
+  type ClientRect,
+  type Modifier,
+  DndContext,
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
+import { TrashIcon } from "./icons/TrashIcon";
+// import { restrictToParentElement } from "@dnd-kit/modifiers";
 
 const MIN_SIZE = 10;
 const ShapeColors = [
@@ -109,6 +117,47 @@ function useClickOutside<T extends HTMLElement = HTMLElement>(
   }, [ref, handler, legalArea]);
 }
 
+function restrictToBoundingRect(
+  transform: { x: number; y: number; scaleX: number; scaleY: number },
+  rect: ClientRect,
+  boundingRect: ClientRect
+) {
+  const value = { ...transform };
+
+  if (rect.top + transform.y <= boundingRect.top) {
+    value.y = boundingRect.top - rect.top;
+  } else if (
+    rect.bottom + transform.y >=
+    boundingRect.top + boundingRect.height
+  ) {
+    value.y = boundingRect.top + boundingRect.height - rect.bottom;
+  }
+
+  if (rect.left + transform.x <= boundingRect.left) {
+    value.x = boundingRect.left - rect.left;
+  } else if (
+    rect.right + transform.x >=
+    boundingRect.left + boundingRect.width
+  ) {
+    value.x = boundingRect.left + boundingRect.width - rect.right;
+  }
+
+  return value;
+}
+
+const restrictToElement: (el: HTMLElement | null) => Modifier = (el) => {
+  return (_ref) => {
+    const rect = el?.getBoundingClientRect();
+    const { draggingNodeRect, transform } = _ref;
+
+    if (!draggingNodeRect || !rect) {
+      return transform;
+    }
+
+    return restrictToBoundingRect(transform, draggingNodeRect, rect);
+  };
+};
+
 export const Editor = ({ isActive }: { isActive: boolean }) => {
   const [background, setBackground] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<ShapeColor>("#235789");
@@ -117,6 +166,7 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
   const [activeShapeId, setActiveShapeId] = useState<number>(-1);
 
   const toolboxRef = useRef<HTMLDivElement>(null);
+  const editorBoundaryRef = useRef<HTMLDivElement>(null);
 
   function updateShapeById(id: number, modifier: (oldShape: Shape) => Shape) {
     setShapes((prev) => {
@@ -167,6 +217,7 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
       onDragOver={(e) => e.preventDefault()}
     >
       <DndContext
+        modifiers={[restrictToElement(editorBoundaryRef.current)]}
         onDragStart={(e) => {
           if (typeof e.active.id === "number") {
             // Normal movement
@@ -249,13 +300,15 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
           }
         }}
       >
-        <InteractiveEditor
-          activeShapeId={activeShapeId}
-          setActiveShapeId={setActiveShapeId}
-          shapes={shapes}
-          background={background}
-          legalArea={toolboxRef}
-        />
+        <div className="h-80 w-full" ref={editorBoundaryRef}>
+          <InteractiveEditor
+            activeShapeId={activeShapeId}
+            setActiveShapeId={setActiveShapeId}
+            shapes={shapes}
+            background={background}
+            legalArea={toolboxRef}
+          />
+        </div>
       </DndContext>
       <div ref={toolboxRef} className="flex w-full bg-zinc-900 p-2 text-2xl">
         <div
@@ -299,6 +352,18 @@ export const Editor = ({ isActive }: { isActive: boolean }) => {
               ></button>
             ))}
           </div>
+          {activeShapeId !== -1 && (
+            <button
+              onClick={() => {
+                setShapes((prev) =>
+                  prev.filter(({ id }) => id !== activeShapeId)
+                );
+                setActiveShapeId(-1);
+              }}
+            >
+              <TrashIcon style={{ color: "red" }} />
+            </button>
+          )}
           <button
             onClick={() =>
               setToolboxMod(toolboxMod === "colors" ? "shapes" : "colors")

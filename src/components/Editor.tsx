@@ -199,7 +199,7 @@ export const Editor = ({
     <div
       className={cx(
         "mx-auto w-80 overflow-hidden transition-all",
-        isActive ? "m-0 h-0" : "mt-4 h-96"
+        isActive ? "mt-4 h-96" : "m-0 h-0"
       )}
       onDrop={(e) => {
         e.preventDefault();

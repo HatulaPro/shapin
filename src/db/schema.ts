@@ -1,6 +1,6 @@
-import { type InferModel, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
+import { type InferModel, pgTable, index } from "drizzle-orm/pg-core";
 import {
-  date,
+  timestamp,
   serial,
   text,
   integer,
@@ -11,13 +11,16 @@ export const posts = pgTable(
   "posts",
   {
     id: serial("id").primaryKey(),
-    created_at: date("created_at", { mode: "date" }),
-    user_id: text("user_id"),
+    created_at: timestamp("created_at", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    user_id: text("user_id").notNull(),
+    title: text("title").notNull(),
   },
   (posts) => {
     return {
-      dateIndex: uniqueIndex("date_idx").on(posts.created_at),
-      userIndex: uniqueIndex("user_idx").on(posts.user_id),
+      datePostIndex: index("date_post_idx").on(posts.created_at),
+      userPostIndex: index("user_post_idx").on(posts.user_id),
     };
   }
 );
@@ -39,8 +42,12 @@ export const colorEnum = pgEnum("color", [
 export const shapes = pgTable(
   "shapes",
   {
-    id: serial("id").primaryKey(),
-    post_id: serial("post_id").references(() => posts.id),
+    id: serial("id").primaryKey().notNull(),
+    post_id: serial("post_id")
+      .notNull()
+      .references(() => posts.id, {
+        onDelete: "cascade",
+      }),
     shape_type: shape_typeEnum("shape_type").notNull(),
     left: integer("left").notNull(),
     top: integer("top").notNull(),
@@ -51,9 +58,11 @@ export const shapes = pgTable(
   },
   (shapes) => {
     return {
-      postIndex: uniqueIndex("post_idx").on(shapes.post_id),
+      postShapeIndex: index("post_shape_idx").on(shapes.post_id, shapes.id),
     };
   }
 );
 export type Shape = InferModel<typeof shapes>;
 export type ShapeWithoutPostId = Omit<Shape, "post_id">;
+
+export type Post = InferModel<typeof posts>;

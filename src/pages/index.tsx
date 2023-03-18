@@ -1,12 +1,13 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Editor } from "~/components/Editor";
 import { CustomSignIn } from "~/components/CustomSignIn";
 import { SignedIn, useClerk } from "@clerk/nextjs";
 import Image from "next/image";
 import { CustomSignUp } from "~/components/CustomSignUp";
 import { type ShapeWithoutPostId } from "~/db/schema";
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   return (
@@ -56,20 +57,112 @@ const Header = () => {
   );
 };
 
+const usePosts = () => {
+  const getPostsQuery = api.drawings.getDrawings.useInfiniteQuery(
+    {
+      count: 5,
+    },
+    {
+      getNextPageParam: (lastData) => lastData.nextCursor,
+    }
+  );
+  useEffect(() => {
+    const listener = () => {
+      if (
+        getPostsQuery.isLoading ||
+        getPostsQuery.isFetchingNextPage ||
+        !getPostsQuery.hasNextPage
+      )
+        return;
+      if (
+        window.innerHeight + window.scrollY + 1200 >
+        document.body.offsetHeight
+      ) {
+        void getPostsQuery.fetchNextPage();
+      }
+    };
+    window.addEventListener("scroll", listener);
+
+    return () => {
+      window.removeEventListener("scroll", listener);
+    };
+  }, [getPostsQuery]);
+
+  const flattenedPosts = useMemo(() => {
+    return (
+      getPostsQuery.data?.pages.reduce<
+        (typeof getPostsQuery)["data"]["pages"][number]["posts"]
+      >((acc, cur) => {
+        acc.push(...cur.posts);
+        return acc;
+      }, []) || []
+    );
+  }, [getPostsQuery]);
+  return {
+    posts: flattenedPosts,
+    isLoading: getPostsQuery.isLoading,
+  };
+};
+
 const PostsViewer = () => {
+  const { posts, isLoading } = usePosts();
   return (
     <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
-      {[1, 2, 3].map((i) => {
+      {isLoading && "Loading..."}
+      {posts?.map((post) => {
         return (
-          <div key={i} className="rounded-md border-2 border-white p-4">
+          <div
+            key={post.post.id}
+            className="rounded-md border-2 border-white p-4"
+          >
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-green-500" />
-              <span>someone</span>
+              <Image
+                alt="Your profile picture"
+                src={post.user.profileImageUrl}
+                className="rounded-full border-[1px] border-white"
+                width={36}
+                height={36}
+              />
+              <span>{post.user.username}</span>
             </div>
-            <div className="mx-auto my-4 h-80 w-80 rounded-md bg-yellow-500"></div>
+            <h3 className="my-2 ml-12 text-xl">{post.post.title}</h3>
+            <div className="relative mx-auto my-4 h-80 w-80 rounded-md border-[1px] border-white/20">
+              {post.shapes.map((shape) => (
+                <PlainShape key={shape.id} shape={shape} />
+              ))}
+            </div>
           </div>
         );
       })}
+    </div>
+  );
+};
+
+export const PlainShape = ({ shape }: { shape: ShapeWithoutPostId }) => {
+  return (
+    <div
+      className="absolute"
+      style={{
+        top: shape.top,
+        left: shape.left,
+        width: shape.width,
+        height: shape.height,
+        zIndex: shape.zIndex,
+      }}
+    >
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="absolute h-full w-full"
+      >
+        {shape.shape_type === "SQUARE" ? (
+          <rect x="0" y="0" width="100" height="100" fill={shape.color} />
+        ) : shape.shape_type === "TRIANGLE" ? (
+          <polygon points="50 15, 100 100, 0 100" fill={shape.color} />
+        ) : (
+          <circle cx="50" cy="50" r="50" fill={shape.color} />
+        )}
+      </svg>
     </div>
   );
 };
@@ -78,6 +171,18 @@ const CreatePostSection = () => {
   const [isActive, setActive] = useState(false);
   const { user } = useClerk();
   const [shapes, setShapes] = useState<ShapeWithoutPostId[]>([]);
+  const [title, setTitle] = useState("");
+  const utils = api.useContext();
+  const createPostMutation = api.drawings.createDrawing.useMutation({
+    onMutate() {
+      void utils.drawings.getDrawings.invalidate();
+    },
+    onSuccess() {
+      setTitle("");
+      setActive(false);
+      setShapes([]);
+    },
+  });
 
   if (!user) return <></>;
   return (
@@ -96,14 +201,24 @@ const CreatePostSection = () => {
         type="text"
         placeholder="Sup?"
         className="my-2 w-full rounded-md border-2 border-white/20 bg-transparent p-2 text-white outline-none"
+        value={title}
+        onChange={(e) => setTitle(e.currentTarget.value)}
       />
       <Editor isActive={isActive} shapes={shapes} setShapes={setShapes} />
       <button
-        className="ml-auto block rounded-md p-2 transition-all hover:bg-white/5"
-        onClick={() => setActive(!isActive)}
+        className="ml-auto block rounded-md p-2 transition-all hover:bg-white/5 disabled:text-gray-300"
+        disabled={createPostMutation.isLoading}
+        onClick={() => {
+          if (isActive && shapes.length) {
+            createPostMutation.mutate({ shapes, title });
+          } else {
+            setActive(!isActive);
+          }
+        }}
       >
         CREATE
       </button>
+      {createPostMutation.isLoading && "loading..."}
     </div>
   );
 };

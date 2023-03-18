@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
-export const exampleRouter = createTRPCRouter({
-  hello: publicProcedure
+export const drawingsRouter = createTRPCRouter({
+  createDrawing: protectedProcedure
     .input(z.object({ text: z.string() }))
     .query(({ input }) => {
       return {

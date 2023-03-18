@@ -21,8 +21,10 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { TrashIcon } from "./icons/TrashIcon";
+import { type ShapeWithoutPostId } from "~/db/schema";
 
 const MIN_SIZE = 10;
+type ShapeColor = ShapeWithoutPostId["color"];
 const ShapeColors = [
   "#000000",
   "#235789",
@@ -31,18 +33,8 @@ const ShapeColors = [
   "#56e39f",
   "#e574bc",
   "#ffffff",
-] as const;
-type ShapeColor = (typeof ShapeColors)[number];
-export type Shape = {
-  id: number;
-  type: "SQUARE" | "TRIANGLE" | "CIRCLE";
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  zIndex: number;
-  color: ShapeColor;
-};
+] satisfies ShapeColor[];
+
 const InteractiveEditor = ({
   shapes,
   background,
@@ -50,7 +42,7 @@ const InteractiveEditor = ({
   setActiveShapeId,
   legalArea,
 }: {
-  shapes: Shape[];
+  shapes: ShapeWithoutPostId[];
   background: string | null;
   activeShapeId: number;
   setActiveShapeId: (n: number) => void;
@@ -74,17 +66,11 @@ const InteractiveEditor = ({
       }}
       ref={setNodeRef}
     >
-      {shapes.map((shape, idx) => (
+      {shapes.map((shape) => (
         <ShapeDisplay
           key={shape.id}
           isActive={activeShapeId === shape.id}
           shape={shape}
-          updateShape={(newShape) => {
-            shapes[idx] = newShape;
-            const maxZIndex = Math.max(...shapes.map((x) => x.zIndex), 0) + 1;
-            newShape.zIndex = maxZIndex;
-            return [...shapes];
-          }}
         />
       ))}
     </div>
@@ -165,8 +151,8 @@ export const Editor = ({
   setShapes,
 }: {
   isActive: boolean;
-  shapes: Shape[];
-  setShapes: Dispatch<SetStateAction<Shape[]>>;
+  shapes: ShapeWithoutPostId[];
+  setShapes: Dispatch<SetStateAction<ShapeWithoutPostId[]>>;
 }) => {
   const [background, setBackground] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<ShapeColor>("#235789");
@@ -176,7 +162,10 @@ export const Editor = ({
   const toolboxRef = useRef<HTMLDivElement>(null);
   const editorBoundaryRef = useRef<HTMLDivElement>(null);
 
-  function updateShapeById(id: number, modifier: (oldShape: Shape) => Shape) {
+  function updateShapeById(
+    id: number,
+    modifier: (oldShape: ShapeWithoutPostId) => ShapeWithoutPostId
+  ) {
     setShapes((prev) => {
       // Normal movement
       return prev.map((s) => {
@@ -188,7 +177,7 @@ export const Editor = ({
     });
   }
 
-  function addShape(type: Shape["type"]) {
+  function addShape(type: ShapeWithoutPostId["shape_type"]) {
     const nextId = Math.max(...shapes.map((x) => x.id), 0) + 1;
     setShapes([
       ...shapes,
@@ -200,7 +189,7 @@ export const Editor = ({
         width: 32,
         height: 32,
         zIndex: 0,
-        type,
+        shape_type: type,
       },
     ]);
     setActiveShapeId(nextId);
@@ -393,10 +382,8 @@ export const Editor = ({
 const ShapeDisplay = ({
   shape,
   isActive,
-}: //   updateShape,
-{
-  shape: Shape;
-  updateShape: (newShape: Shape) => void;
+}: {
+  shape: ShapeWithoutPostId;
   isActive: boolean;
 }) => {
   const { setNodeRef, transform, listeners } = useDraggable({
@@ -482,9 +469,9 @@ const ShapeDisplay = ({
         preserveAspectRatio="none"
         className="absolute h-full w-full"
       >
-        {shape.type === "SQUARE" ? (
+        {shape.shape_type === "SQUARE" ? (
           <rect x="0" y="0" width="100" height="100" fill={shape.color} />
-        ) : shape.type === "TRIANGLE" ? (
+        ) : shape.shape_type === "TRIANGLE" ? (
           <polygon points="50 15, 100 100, 0 100" fill={shape.color} />
         ) : (
           <circle cx="50" cy="50" r="50" fill={shape.color} />

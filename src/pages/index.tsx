@@ -1,11 +1,12 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
-import { Editor, type Shape } from "~/components/Editor";
+import { Editor } from "~/components/Editor";
 import { CustomSignIn } from "~/components/CustomSignIn";
 import { SignedIn, useClerk } from "@clerk/nextjs";
 import Image from "next/image";
 import { CustomSignUp } from "~/components/CustomSignUp";
+import { type ShapeWithoutPostId } from "~/db/schema";
 
 const Home: NextPage = () => {
   return (
@@ -76,7 +77,7 @@ const PostsViewer = () => {
 const CreatePostSection = () => {
   const [isActive, setActive] = useState(false);
   const { user } = useClerk();
-  const [shapes, setShapes] = useState<Shape[]>([]);
+  const [shapes, setShapes] = useState<ShapeWithoutPostId[]>([]);
 
   if (!user) return <></>;
   return (

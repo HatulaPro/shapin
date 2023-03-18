@@ -2,6 +2,9 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import { Editor } from "~/components/Editor";
+import { CustomSignIn } from "~/components/CustomSignIn";
+import { SignedIn, useClerk } from "@clerk/nextjs";
+import Image from "next/image";
 
 const Home: NextPage = () => {
   return (
@@ -11,9 +14,11 @@ const Home: NextPage = () => {
         <meta name="description" content="Shapin home page" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {/* <Header /> */}
+      <Header />
       <main className="min-h-screen bg-black p-4 text-white">
-        <CreatePostSection />
+        <SignedIn>
+          <CreatePostSection />
+        </SignedIn>
         <PostsViewer />
       </main>
     </>
@@ -22,16 +27,29 @@ const Home: NextPage = () => {
 
 export default Home;
 
-// const Header = () => {
-//   return (
-//     <div className="fixed top-0 left-0 flex w-full gap-2 bg-[#121232] p-4 text-white">
-//       <div className="flex items-center gap-2">
-//         <div className="h-10 w-10 rounded-full border-2 border-white bg-yellow-400" />
-//         <span>my_username</span>
-//       </div>
-//     </div>
-//   );
-// };
+const Header = () => {
+  const { user } = useClerk();
+  return (
+    <div className="sticky top-0 left-0 z-[9999] flex w-full gap-2 bg-[#121232] p-4 text-white">
+      <div className="flex items-center gap-2">
+        {user ? (
+          <>
+            <Image
+              alt="Your profile picture"
+              src={user.profileImageUrl}
+              className="rounded-full border-[1px] border-white"
+              width={40}
+              height={40}
+            />
+            <span>{user.username}</span>
+          </>
+        ) : (
+          <CustomSignIn />
+        )}
+      </div>
+    </div>
+  );
+};
 
 const PostsViewer = () => {
   return (
@@ -53,11 +71,19 @@ const PostsViewer = () => {
 
 const CreatePostSection = () => {
   const [isActive, setActive] = useState(false);
+  const { user } = useClerk();
+  if (!user) return <></>;
   return (
     <div className="mx-auto max-w-md rounded-md border-2 border-white p-4">
       <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-full bg-green-500" />
-        <span>someone</span>
+        <Image
+          alt="Your profile picture"
+          src={user.profileImageUrl}
+          className="rounded-full border-[1px] border-white"
+          width={40}
+          height={40}
+        />
+        <span>{user.username}</span>
       </div>
       <input
         type="text"

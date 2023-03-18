@@ -4,6 +4,8 @@ import {
   useEffect,
   useState,
   useRef,
+  type SetStateAction,
+  type Dispatch,
 } from "react";
 import { cx } from "~/utils/general";
 import { CircleIcon } from "./icons/CircleIcon";
@@ -19,7 +21,6 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { TrashIcon } from "./icons/TrashIcon";
-// import { restrictToParentElement } from "@dnd-kit/modifiers";
 
 const MIN_SIZE = 10;
 const ShapeColors = [
@@ -32,7 +33,7 @@ const ShapeColors = [
   "#ffffff",
 ] as const;
 type ShapeColor = (typeof ShapeColors)[number];
-type Shape = {
+export type Shape = {
   id: number;
   type: "SQUARE" | "TRIANGLE" | "CIRCLE";
   left: number;
@@ -158,11 +159,18 @@ const restrictToElement: (el: HTMLElement | null) => Modifier = (el) => {
   };
 };
 
-export const Editor = ({ isActive }: { isActive: boolean }) => {
+export const Editor = ({
+  isActive,
+  shapes,
+  setShapes,
+}: {
+  isActive: boolean;
+  shapes: Shape[];
+  setShapes: Dispatch<SetStateAction<Shape[]>>;
+}) => {
   const [background, setBackground] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<ShapeColor>("#235789");
   const [toolboxMod, setToolboxMod] = useState<"shapes" | "colors">("shapes");
-  const [shapes, setShapes] = useState<Shape[]>([]);
   const [activeShapeId, setActiveShapeId] = useState<number>(-1);
 
   const toolboxRef = useRef<HTMLDivElement>(null);

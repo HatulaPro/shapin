@@ -1,10 +1,11 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
-import { Editor } from "~/components/Editor";
+import { Editor, type Shape } from "~/components/Editor";
 import { CustomSignIn } from "~/components/CustomSignIn";
 import { SignedIn, useClerk } from "@clerk/nextjs";
 import Image from "next/image";
+import { CustomSignUp } from "~/components/CustomSignUp";
 
 const Home: NextPage = () => {
   return (
@@ -30,21 +31,24 @@ export default Home;
 const Header = () => {
   const { user } = useClerk();
   return (
-    <div className="sticky top-0 left-0 z-[9999] flex w-full gap-2 bg-[#121232] p-4 text-white">
-      <div className="flex items-center gap-2">
+    <div className="sticky top-0 left-0 z-[9999] flex w-full gap-2 bg-[#121232] px-6 py-4 text-white">
+      <div className="flex w-full items-center justify-end gap-2">
         {user ? (
           <>
             <Image
               alt="Your profile picture"
               src={user.profileImageUrl}
               className="rounded-full border-[1px] border-white"
-              width={40}
-              height={40}
+              width={36}
+              height={36}
             />
             <span>{user.username}</span>
           </>
         ) : (
-          <CustomSignIn />
+          <>
+            <CustomSignIn />
+            <CustomSignUp />
+          </>
         )}
       </div>
     </div>
@@ -72,6 +76,8 @@ const PostsViewer = () => {
 const CreatePostSection = () => {
   const [isActive, setActive] = useState(false);
   const { user } = useClerk();
+  const [shapes, setShapes] = useState<Shape[]>([]);
+
   if (!user) return <></>;
   return (
     <div className="mx-auto max-w-md rounded-md border-2 border-white p-4">
@@ -80,8 +86,8 @@ const CreatePostSection = () => {
           alt="Your profile picture"
           src={user.profileImageUrl}
           className="rounded-full border-[1px] border-white"
-          width={40}
-          height={40}
+          width={36}
+          height={36}
         />
         <span>{user.username}</span>
       </div>
@@ -90,7 +96,7 @@ const CreatePostSection = () => {
         placeholder="Sup?"
         className="my-2 w-full rounded-md border-2 border-white/20 bg-transparent p-2 text-white outline-none"
       />
-      <Editor isActive={isActive} />
+      <Editor isActive={isActive} shapes={shapes} setShapes={setShapes} />
       <button
         className="ml-auto block rounded-md p-2 transition-all hover:bg-white/5"
         onClick={() => setActive(!isActive)}

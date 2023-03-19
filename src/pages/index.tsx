@@ -183,7 +183,7 @@ const CreatePostSection = () => {
       setShapes([]);
     },
   });
-
+  console.log(createPostMutation.error?.data?.zodError);
   if (!user) return <></>;
   return (
     <div className="mx-auto max-w-md rounded-md border-2 border-white p-4">
@@ -204,9 +204,12 @@ const CreatePostSection = () => {
         value={title}
         onChange={(e) => setTitle(e.currentTarget.value)}
       />
+      <span className="text-sm text-red-400">
+        {createPostMutation.error?.data?.zodError?.fieldErrors["title"]}
+      </span>
       <Editor isActive={isActive} shapes={shapes} setShapes={setShapes} />
       <button
-        className="ml-auto block rounded-md p-2 transition-all hover:bg-white/5 disabled:text-gray-300"
+        className="rounded-md p-2 transition-all hover:bg-white/5 disabled:text-gray-300"
         disabled={createPostMutation.isLoading}
         onClick={() => {
           if (isActive && shapes.length) {
@@ -218,6 +221,17 @@ const CreatePostSection = () => {
       >
         CREATE
       </button>
+      {isActive && shapes.length > 0 && (
+        <button
+          className="rounded-md p-2 transition-all hover:bg-white/5 disabled:text-gray-300"
+          disabled={createPostMutation.isLoading}
+          onClick={() => {
+            setShapes([]);
+          }}
+        >
+          CLEAR
+        </button>
+      )}
       {createPostMutation.isLoading && "loading..."}
     </div>
   );

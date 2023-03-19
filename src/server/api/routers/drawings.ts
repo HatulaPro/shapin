@@ -16,7 +16,10 @@ export const drawingsRouter = createTRPCRouter({
   createDrawing: protectedProcedure
     .input(
       z.object({
-        title: z.string(),
+        title: z
+          .string()
+          .min(4, "Title must contain at least 4 characters")
+          .max(128, "Title must contain at most 128 characters"),
         shapes: z
           .array(
             z.object({
@@ -38,7 +41,7 @@ export const drawingsRouter = createTRPCRouter({
               ]),
             })
           )
-          .max(20),
+          .max(20, "The number of shapes can not exceed 20"),
       })
     )
     .mutation(async ({ input, ctx }) => {

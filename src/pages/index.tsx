@@ -8,6 +8,7 @@ import Image from "next/image";
 import { CustomSignUp } from "~/components/CustomSignUp";
 import { type ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
+import { Loading } from "~/components/Loading";
 
 const Home: NextPage = () => {
   return (
@@ -75,7 +76,7 @@ const usePosts = () => {
       )
         return;
       if (
-        window.innerHeight + window.scrollY + 1200 >
+        window.innerHeight + window.scrollY + 800 >
         document.body.offsetHeight
       ) {
         void getPostsQuery.fetchNextPage();
@@ -108,7 +109,6 @@ const PostsViewer = () => {
   const { posts, isLoading } = usePosts();
   return (
     <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
-      {isLoading && "Loading..."}
       {posts?.map((post) => {
         return (
           <div
@@ -134,6 +134,7 @@ const PostsViewer = () => {
           </div>
         );
       })}
+      <Loading loading={isLoading} />
     </div>
   );
 };
@@ -208,6 +209,7 @@ const CreatePostSection = () => {
         {createPostMutation.error?.data?.zodError?.fieldErrors["title"]}
       </span>
       <Editor isActive={isActive} shapes={shapes} setShapes={setShapes} />
+      <Loading loading={createPostMutation.isLoading} />
       <button
         className="rounded-md p-2 transition-all hover:bg-white/5 disabled:text-gray-300"
         disabled={createPostMutation.isLoading}
@@ -232,7 +234,6 @@ const CreatePostSection = () => {
           CLEAR
         </button>
       )}
-      {createPostMutation.isLoading && "loading..."}
     </div>
   );
 };

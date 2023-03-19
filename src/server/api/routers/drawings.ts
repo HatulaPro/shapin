@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "~/db/db";
 import { shapes, posts } from "~/db/schema";
-import { asc, eq, lt, inArray } from "drizzle-orm/expressions";
+import { eq, lt, inArray, desc } from "drizzle-orm/expressions";
 
 import {
   createTRPCRouter,
@@ -103,7 +103,7 @@ export const drawingsRouter = createTRPCRouter({
               .select({ id: posts.id })
               .from(posts)
               .where(lt(posts.created_at, input.cursor ?? new Date()))
-              .orderBy(asc(posts.created_at))
+              .orderBy(desc(posts.created_at))
               .limit(input.count)
           )
         )

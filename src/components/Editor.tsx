@@ -314,15 +314,24 @@ export const Editor = ({
             toolboxMod === "colors" ? "flex-0 w-0" : "flex-1"
           )}
         >
-          <button onClick={() => addShape("SQUARE")}>
-            <SquareIcon style={{ color: "white" }} />
-          </button>
-          <button onClick={() => addShape("TRIANGLE")}>
-            <TriangleIcon style={{ color: "white" }} />
-          </button>
-          <button onClick={() => addShape("CIRCLE")}>
-            <CircleIcon style={{ color: "white" }} />
-          </button>
+          {shapes.length < 20 ? (
+            <>
+              {" "}
+              <button onClick={() => addShape("SQUARE")}>
+                <SquareIcon style={{ color: "white" }} />
+              </button>
+              <button onClick={() => addShape("TRIANGLE")}>
+                <TriangleIcon style={{ color: "white" }} />
+              </button>
+              <button onClick={() => addShape("CIRCLE")}>
+                <CircleIcon style={{ color: "white" }} />
+              </button>
+            </>
+          ) : (
+            <span className="text-sm text-red-400">
+              shape limit (20) reached
+            </span>
+          )}
         </div>
 
         <div className="flex flex-1 justify-end gap-2 overflow-hidden transition-all">

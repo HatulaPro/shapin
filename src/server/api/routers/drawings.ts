@@ -17,26 +17,28 @@ export const drawingsRouter = createTRPCRouter({
     .input(
       z.object({
         title: z.string(),
-        shapes: z.array(
-          z.object({
-            id: z.number(),
-            shape_type: z.enum(["SQUARE", "TRIANGLE", "CIRCLE"]),
-            left: z.number(),
-            top: z.number(),
-            width: z.number(),
-            height: z.number(),
-            zIndex: z.number(),
-            color: z.enum([
-              "#000000",
-              "#235789",
-              "#c1292e",
-              "#f1d302",
-              "#56e39f",
-              "#e574bc",
-              "#ffffff",
-            ]),
-          })
-        ),
+        shapes: z
+          .array(
+            z.object({
+              id: z.number(),
+              shape_type: z.enum(["SQUARE", "TRIANGLE", "CIRCLE"]),
+              left: z.number(),
+              top: z.number(),
+              width: z.number(),
+              height: z.number(),
+              zIndex: z.number(),
+              color: z.enum([
+                "#000000",
+                "#235789",
+                "#c1292e",
+                "#f1d302",
+                "#56e39f",
+                "#e574bc",
+                "#ffffff",
+              ]),
+            })
+          )
+          .max(20),
       })
     )
     .mutation(async ({ input, ctx }) => {

@@ -309,6 +309,7 @@ export const Editor = ({
           />
         </div>
       </DndContext>
+
       <div ref={toolboxRef} className="flex w-full bg-zinc-900 p-2 text-2xl">
         <div
           className={cx(
@@ -386,6 +387,14 @@ export const Editor = ({
           )}
         </div>
       </div>
+      {background !== getTodaysImageURL() && (
+        <button
+          onClick={() => setBackground(getTodaysImageURL)}
+          className="text-xs text-indigo-400 hover:underline"
+        >
+          use today&apos;s image
+        </button>
+      )}
     </div>
   );
 };

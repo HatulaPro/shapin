@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/set_todays_image",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

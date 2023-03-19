@@ -5,7 +5,13 @@ import {
   text,
   integer,
   pgEnum,
+  date,
 } from "drizzle-orm/pg-core/columns";
+
+export const images = pgTable("images", {
+  date: date("date", { mode: "date" }).notNull().defaultNow().primaryKey(),
+  url: text("url").notNull(),
+});
 
 export const posts = pgTable(
   "posts",
@@ -66,3 +72,4 @@ export type Shape = InferModel<typeof shapes>;
 export type ShapeWithoutPostId = Omit<Shape, "post_id">;
 
 export type Post = InferModel<typeof posts>;
+export type DailyImage = InferModel<typeof images>;

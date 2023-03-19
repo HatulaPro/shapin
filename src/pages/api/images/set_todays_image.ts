@@ -12,9 +12,13 @@ export default async function handler(
 
   const url = image.url;
   try {
-    const result = await db.insert(images).values({
-      url,
-    });
+    const result = await db
+      .insert(images)
+      .values({
+        url,
+      })
+      .returning()
+      .execute();
     return res.json({ success: true, result });
   } catch {
     return res.json({

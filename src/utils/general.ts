@@ -2,6 +2,12 @@ export function cx(...things: (string | undefined | null | false)[]) {
   return things.join(" ");
 }
 
+export function getTodaysImageURL() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return `/api/images/get_image/${yesterday.toISOString().slice(0, 10)}`;
+}
+
 type CombineDrizzleOutput<
   CombineBy extends keyof TData,
   TData extends object

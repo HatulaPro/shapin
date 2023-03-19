@@ -7,7 +7,7 @@ import {
   type SetStateAction,
   type Dispatch,
 } from "react";
-import { cx } from "~/utils/general";
+import { cx, getTodaysImageURL } from "~/utils/general";
 import { CircleIcon } from "./icons/CircleIcon";
 import { ClearIcon } from "./icons/ClearIcon";
 import { ColorIcon } from "./icons/ColorIcon";
@@ -154,7 +154,9 @@ export const Editor = ({
   shapes: ShapeWithoutPostId[];
   setShapes: Dispatch<SetStateAction<ShapeWithoutPostId[]>>;
 }) => {
-  const [background, setBackground] = useState<string | null>(null);
+  const [background, setBackground] = useState<string | null>(
+    getTodaysImageURL()
+  );
   const [currentColor, setCurrentColor] = useState<ShapeColor>("#235789");
   const [toolboxMod, setToolboxMod] = useState<"shapes" | "colors">("shapes");
   const [activeShapeId, setActiveShapeId] = useState<number>(-1);

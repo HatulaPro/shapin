@@ -1,8 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "~/db/db";
-import { type Post, type Shape, shapes, posts } from "~/db/schema";
-import { asc, eq, lt } from "drizzle-orm/expressions";
+import { shapes, posts } from "~/db/schema";
+import { asc, eq, lt, inArray } from "drizzle-orm/expressions";
 
 import {
   createTRPCRouter,
@@ -10,6 +10,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { clerkClient } from "@clerk/nextjs/server";
+import { combineDrizzleData } from "~/utils/general";
 
 export const drawingsRouter = createTRPCRouter({
   createDrawing: protectedProcedure
@@ -86,35 +87,28 @@ export const drawingsRouter = createTRPCRouter({
       const postsRes = await db
         .select({
           post: posts,
-          shape: shapes,
+          shapes: shapes,
         })
         .from(posts)
         .leftJoin(shapes, eq(shapes.post_id, posts.id))
-        .where(lt(posts.created_at, input.cursor ?? new Date()))
-        .limit(input.count)
-        .orderBy(asc(posts.created_at))
+        .where(
+          inArray(
+            posts.id,
+            db
+              .select({ id: posts.id })
+              .from(posts)
+              .where(lt(posts.created_at, input.cursor ?? new Date()))
+              .orderBy(asc(posts.created_at))
+              .limit(input.count)
+          )
+        )
         .execute();
 
-      const simplifiedPosts = Object.values(
-        postsRes.reduce<Record<number, { post: Post; shapes: Shape[] }>>(
-          (acc, row) => {
-            const shape = row.shape;
-            const post = row.post;
-
-            if (!acc[post.id]) {
-              acc[post.id] = { post, shapes: [] as Shape[] };
-            }
-
-            if (shape) {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              acc[post.id]!.shapes.push(shape);
-            }
-
-            return acc;
-          },
-          {}
-        )
-      ).sort(
+      const simplifiedPosts = combineDrizzleData({
+        data: postsRes,
+        combineBy: "post",
+        getKey: (post) => post.id,
+      }).sort(
         (a, b) => b.post.created_at.getTime() - a.post.created_at.getTime()
       );
 

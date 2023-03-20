@@ -25,10 +25,15 @@ export function timeAgo(date: Date) {
   return `${Math.floor(years)}y`;
 }
 
-export function getTodaysImageURL() {
+export function getTodaysImageDate() {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  return `/api/images/get_image/${yesterday.toISOString().slice(0, 10)}`;
+  return yesterday;
+}
+export function getTodaysImageURL() {
+  return `/api/images/get_image/${getTodaysImageDate()
+    .toISOString()
+    .slice(0, 10)}`;
 }
 
 type CombineDrizzleOutput<

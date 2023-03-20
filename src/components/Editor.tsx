@@ -149,14 +149,15 @@ export const Editor = ({
   isActive,
   shapes,
   setShapes,
+  background,
+  setBackground,
 }: {
   isActive: boolean;
   shapes: ShapeWithoutPostId[];
   setShapes: Dispatch<SetStateAction<ShapeWithoutPostId[]>>;
+  background: string | null;
+  setBackground: Dispatch<SetStateAction<string | null>>;
 }) => {
-  const [background, setBackground] = useState<string | null>(
-    getTodaysImageURL()
-  );
   const [currentColor, setCurrentColor] = useState<ShapeColor>("#235789");
   const [toolboxMod, setToolboxMod] = useState<"shapes" | "colors">("shapes");
   const [activeShapeId, setActiveShapeId] = useState<number>(-1);

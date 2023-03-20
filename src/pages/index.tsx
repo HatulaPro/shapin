@@ -9,7 +9,11 @@ import { CustomSignUp } from "~/components/CustomSignUp";
 import { type ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
 import { Loading } from "~/components/Loading";
-import { timeAgo } from "~/utils/general";
+import {
+  getTodaysImageDate,
+  getTodaysImageURL,
+  timeAgo,
+} from "~/utils/general";
 
 const Home: NextPage = () => {
   return (
@@ -177,6 +181,9 @@ const CreatePostSection = () => {
   const { user } = useClerk();
   const [shapes, setShapes] = useState<ShapeWithoutPostId[]>([]);
   const [title, setTitle] = useState("");
+  const [background, setBackground] = useState<string | null>(
+    getTodaysImageURL()
+  );
   const utils = api.useContext();
   const createPostMutation = api.drawings.createDrawing.useMutation({
     onMutate() {
@@ -212,14 +219,27 @@ const CreatePostSection = () => {
       <span className="text-sm text-red-400">
         {createPostMutation.error?.data?.zodError?.fieldErrors["title"]}
       </span>
-      <Editor isActive={isActive} shapes={shapes} setShapes={setShapes} />
+      <Editor
+        isActive={isActive}
+        shapes={shapes}
+        setShapes={setShapes}
+        background={background}
+        setBackground={setBackground}
+      />
       <Loading loading={createPostMutation.isLoading} />
       <button
         className="rounded-md p-2 transition-all hover:bg-white/5 disabled:text-gray-300"
         disabled={createPostMutation.isLoading}
         onClick={() => {
           if (isActive && shapes.length) {
-            createPostMutation.mutate({ shapes, title });
+            createPostMutation.mutate({
+              shapes,
+              title,
+              attemptingDate:
+                background === getTodaysImageURL()
+                  ? getTodaysImageDate()
+                  : undefined,
+            });
           } else {
             setActive(!isActive);
           }

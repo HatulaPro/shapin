@@ -22,6 +22,7 @@ export const posts = pgTable(
       .defaultNow(),
     user_id: text("user_id").notNull(),
     title: text("title").notNull(),
+    attempting: date("date", { mode: "date" }).references(() => images.date),
   },
   (posts) => {
     return {

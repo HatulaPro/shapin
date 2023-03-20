@@ -164,7 +164,7 @@ const PostsViewer = () => {
             {post.post.attempting && (
               <p className="text-center text-sm text-indigo-400">
                 <HashIcon className="inline-block text-2xl" />
-                Attempting to win{" "}
+                Submission for{" "}
                 <b>{post.post.attempting.toISOString().slice(0, 10)}</b>&apos;s
                 challenge
               </p>

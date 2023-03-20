@@ -69,7 +69,7 @@ const Header = () => {
 const usePosts = () => {
   const getPostsQuery = api.drawings.getDrawings.useInfiniteQuery(
     {
-      count: 5,
+      count: 15,
     },
     {
       getNextPageParam: (lastData) => lastData.nextCursor,

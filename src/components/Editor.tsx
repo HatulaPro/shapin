@@ -7,7 +7,7 @@ import {
   type SetStateAction,
   type Dispatch,
 } from "react";
-import { cx, getTodaysImageURL } from "~/utils/general";
+import { cx, getTodaysImageDate, getTodaysImageURL } from "~/utils/general";
 import { CircleIcon } from "./icons/CircleIcon";
 import { ClearIcon } from "./icons/ClearIcon";
 import { ColorIcon } from "./icons/ColorIcon";
@@ -22,6 +22,7 @@ import {
 } from "@dnd-kit/core";
 import { TrashIcon } from "./icons/TrashIcon";
 import { type ShapeWithoutPostId } from "~/db/schema";
+import { SubmissionFor } from "./SubmissionFor";
 
 const MIN_SIZE = 10;
 type ShapeColor = ShapeWithoutPostId["color"];
@@ -387,7 +388,9 @@ export const Editor = ({
           )}
         </div>
       </div>
-      {background !== getTodaysImageURL() && (
+      {background === getTodaysImageURL() ? (
+        <SubmissionFor date={getTodaysImageDate()} />
+      ) : (
         <button
           onClick={() => setBackground(getTodaysImageURL)}
           className="text-xs text-indigo-400 hover:underline"

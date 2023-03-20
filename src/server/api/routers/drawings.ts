@@ -64,11 +64,18 @@ export const drawingsRouter = createTRPCRouter({
       const post = (
         await db
           .insert(posts)
-          .values({
-            title: input.title,
-            user_id: userId,
-            attempting: input.attemptingDate,
-          })
+          .values(
+            input.attemptingDate
+              ? {
+                  title: input.title,
+                  user_id: userId,
+                  attempting: input.attemptingDate,
+                }
+              : {
+                  title: input.title,
+                  user_id: userId,
+                }
+          )
           .returning()
           .execute()
       )[0];

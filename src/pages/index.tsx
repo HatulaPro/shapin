@@ -9,6 +9,7 @@ import { CustomSignUp } from "~/components/CustomSignUp";
 import { type ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
 import { Loading } from "~/components/Loading";
+import { timeAgo } from "~/utils/general";
 
 const Home: NextPage = () => {
   return (
@@ -123,7 +124,10 @@ const PostsViewer = () => {
                 width={36}
                 height={36}
               />
-              <span>{post.user.username}</span>
+              <span className="text-base">{post.user.username}</span>
+              <span className="text-xs text-gray-300">
+                {timeAgo(post.post.created_at)}
+              </span>
             </div>
             <h3 className="my-2 ml-12 text-xl">{post.post.title}</h3>
             <div className="relative mx-auto my-4 h-80 w-80 rounded-md border-[1px] border-white/20">

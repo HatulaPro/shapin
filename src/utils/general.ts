@@ -2,6 +2,29 @@ export function cx(...things: (string | undefined | null | false)[]) {
   return things.join(" ");
 }
 
+export function timeAgo(date: Date) {
+  const now = new Date().getTime();
+  const millisDiff = now - date.getTime();
+
+  const seconds = millisDiff / 1000;
+  if (seconds < 60) return `${Math.floor(seconds)}sec`;
+
+  const minutes = seconds / 60;
+  if (minutes < 60) return `${Math.floor(minutes)}min`;
+
+  const hours = minutes / 60;
+  if (hours < 24) return `${Math.floor(hours)}hr`;
+
+  const days = hours / 24;
+  if (days < 30) return `${Math.floor(days)}d`;
+
+  const months = days / 30.5;
+  if (months < 12) return `${Math.floor(months)}mo`;
+
+  const years = months / 12;
+  return `${Math.floor(years)}y`;
+}
+
 export function getTodaysImageURL() {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);

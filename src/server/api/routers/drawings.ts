@@ -1,7 +1,14 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "~/db/db";
-import { shapes, posts } from "~/db/schema";
+import {
+  type DailyImage,
+  type Post,
+  type Shape,
+  images,
+  shapes,
+  posts,
+} from "~/db/schema";
 import { eq, lt, inArray, desc } from "drizzle-orm/expressions";
 
 import {
@@ -10,7 +17,6 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { clerkClient } from "@clerk/nextjs/server";
-import { combineDrizzleData } from "~/utils/general";
 
 export const drawingsRouter = createTRPCRouter({
   createDrawing: protectedProcedure
@@ -23,7 +29,7 @@ export const drawingsRouter = createTRPCRouter({
         attemptingDate: z
           .date()
           .optional()
-          .refine((d) => {
+          .transform((d) => {
             if (d) {
               d.setHours(0, 0, 0, 0);
             }
@@ -102,10 +108,12 @@ export const drawingsRouter = createTRPCRouter({
       const postsRes = await db
         .select({
           post: posts,
-          shapes: shapes,
+          image: images,
+          shape: shapes,
         })
         .from(posts)
         .leftJoin(shapes, eq(shapes.post_id, posts.id))
+        .leftJoin(images, eq(images.date, posts.attempting))
         .where(
           inArray(
             posts.id,
@@ -119,11 +127,32 @@ export const drawingsRouter = createTRPCRouter({
         )
         .execute();
 
-      const simplifiedPosts = combineDrizzleData({
-        data: postsRes,
-        combineBy: "post",
-        getKey: (post) => post.id,
-      }).sort(
+      const simplifiedPosts = [
+        ...postsRes
+          .reduce<
+            Map<
+              number,
+              { post: Post; image: DailyImage | null; shapes: Shape[] }
+            >
+          >((acc, row) => {
+            const { shape, image, post } = row;
+
+            if (!acc.has(post.id)) {
+              acc.set(post.id, { post, shapes: [], image: null });
+            }
+
+            if (shape) {
+              acc.get(post.id)?.shapes.push(shape);
+            }
+            if (image) {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              acc.get(post.id)!.image = image;
+            }
+
+            return acc;
+          }, new Map())
+          .values(),
+      ].sort(
         (a, b) => b.post.created_at.getTime() - a.post.created_at.getTime()
       );
 

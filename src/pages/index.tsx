@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
@@ -14,6 +15,8 @@ import {
   getTodaysImageURL,
   timeAgo,
 } from "~/utils/general";
+import { DraggableBackground } from "~/components/DraggableBackground";
+import { HashIcon } from "~/components/icons/HashIcon";
 
 const Home: NextPage = () => {
   return (
@@ -112,6 +115,7 @@ const usePosts = () => {
 
 const PostsViewer = () => {
   const { posts, isLoading } = usePosts();
+
   return (
     <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
       {posts?.map((post) => {
@@ -134,11 +138,37 @@ const PostsViewer = () => {
               </span>
             </div>
             <h3 className="my-2 ml-12 text-xl">{post.post.title}</h3>
-            <div className="relative mx-auto my-4 h-80 w-80 rounded-md border-[1px] border-white/20">
-              {post.shapes.map((shape) => (
-                <PlainShape key={shape.id} shape={shape} />
-              ))}
-            </div>
+
+            {post.image ? (
+              <>
+                <DraggableBackground>
+                  <>
+                    {post.shapes.map((shape) => (
+                      <PlainShape key={shape.id} shape={shape} />
+                    ))}
+                    <img
+                      src={post.image.url}
+                      className="h-full w-full"
+                      alt="That day's image"
+                    />
+                  </>
+                </DraggableBackground>
+              </>
+            ) : (
+              <div className="relative mx-auto my-4 h-80 w-80 overflow-hidden rounded-md border-[1px] border-white/20">
+                {post.shapes.map((shape) => (
+                  <PlainShape key={shape.id} shape={shape} />
+                ))}
+              </div>
+            )}
+            {post.post.attempting && (
+              <p className="text-center text-sm text-indigo-400">
+                <HashIcon className="inline-block text-2xl" />
+                Attempting to win{" "}
+                <b>{post.post.attempting.toISOString().slice(0, 10)}</b>&apos;s
+                challenge
+              </p>
+            )}
           </div>
         );
       })}
@@ -186,16 +216,14 @@ const CreatePostSection = () => {
   );
   const utils = api.useContext();
   const createPostMutation = api.drawings.createDrawing.useMutation({
-    onMutate() {
-      void utils.drawings.getDrawings.invalidate();
-    },
     onSuccess() {
+      void utils.drawings.getDrawings.invalidate();
       setTitle("");
       setActive(false);
       setShapes([]);
     },
   });
-  console.log(createPostMutation.error?.data?.zodError);
+
   if (!user) return <></>;
   return (
     <div className="mx-auto max-w-md rounded-md border-2 border-white p-4">

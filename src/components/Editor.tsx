@@ -132,7 +132,7 @@ function restrictToBoundingRect(
   return value;
 }
 
-const restrictToElement: (el: HTMLElement | null) => Modifier = (el) => {
+export const restrictToElement: (el: HTMLElement | null) => Modifier = (el) => {
   return (_ref) => {
     const rect = el?.getBoundingClientRect();
     const { draggingNodeRect, transform } = _ref;
@@ -191,7 +191,7 @@ export const Editor = ({
         top: 0,
         width: 32,
         height: 32,
-        zIndex: 0,
+        zIndex: 1,
         shape_type: type,
       },
     ]);

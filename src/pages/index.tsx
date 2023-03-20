@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Editor } from "~/components/Editor";
 import { CustomSignIn } from "~/components/CustomSignIn";
 import { SignedIn, useClerk } from "@clerk/nextjs";
-import Image from "next/image";
 import { CustomSignUp } from "~/components/CustomSignUp";
 import { type ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
@@ -17,6 +16,7 @@ import {
 } from "~/utils/general";
 import { DraggableBackground } from "~/components/DraggableBackground";
 import { SubmissionFor } from "~/components/SubmissionFor";
+import { ProfileImage } from "~/components/ProfileImage";
 
 const Home: NextPage = () => {
   return (
@@ -46,13 +46,7 @@ const Header = () => {
       <div className="flex w-full items-center justify-end gap-2">
         {user ? (
           <>
-            <Image
-              alt="Your profile picture"
-              src={user.profileImageUrl}
-              className="rounded-full border-[1px] border-white"
-              width={36}
-              height={36}
-            />
+            <ProfileImage src={user.profileImageUrl} />
             <span>{user.username}</span>
           </>
         ) : (
@@ -125,12 +119,9 @@ const PostsViewer = () => {
             className="rounded-md border-2 border-white p-4"
           >
             <div className="flex items-center gap-2">
-              <Image
-                alt="Your profile picture"
+              <ProfileImage
+                alt={`${post.user.username ?? "someone"}'s profile picture`}
                 src={post.user.profileImageUrl}
-                className="rounded-full border-[1px] border-white"
-                width={36}
-                height={36}
               />
               <span className="text-base">{post.user.username}</span>
               <span className="text-xs text-gray-300">
@@ -223,13 +214,7 @@ const CreatePostSection = () => {
   return (
     <div className="mx-auto max-w-md rounded-md border-2 border-white p-4">
       <div className="flex items-center gap-2">
-        <Image
-          alt="Your profile picture"
-          src={user.profileImageUrl}
-          className="rounded-full border-[1px] border-white"
-          width={36}
-          height={36}
-        />
+        <ProfileImage src={user.profileImageUrl} />
         <span>{user.username}</span>
       </div>
       <input

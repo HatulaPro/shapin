@@ -207,6 +207,7 @@ const CreatePostSection = () => {
       setTitle("");
       setActive(false);
       setShapes([]);
+      setBackground(getTodaysImageURL());
     },
   });
 

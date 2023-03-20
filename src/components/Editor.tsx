@@ -500,7 +500,6 @@ const ShapeDisplay = ({
       </svg>
       {isActive && (
         <>
-          {" "}
           <div
             className="absolute right-0 h-full w-0.5 cursor-w-resize bg-white/50"
             ref={handleResizeRight.setNodeRef}

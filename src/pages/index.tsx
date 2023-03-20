@@ -16,7 +16,7 @@ import {
   timeAgo,
 } from "~/utils/general";
 import { DraggableBackground } from "~/components/DraggableBackground";
-import { HashIcon } from "~/components/icons/HashIcon";
+import { SubmissionFor } from "~/components/SubmissionFor";
 
 const Home: NextPage = () => {
   return (
@@ -162,12 +162,7 @@ const PostsViewer = () => {
               </div>
             )}
             {post.post.attempting && (
-              <p className="text-center text-sm text-indigo-400">
-                <HashIcon className="inline-block text-2xl" />
-                Submission for{" "}
-                <b>{post.post.attempting.toISOString().slice(0, 10)}</b>&apos;s
-                challenge
-              </p>
+              <SubmissionFor date={post.post.attempting} />
             )}
           </div>
         );

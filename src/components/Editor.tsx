@@ -173,13 +173,13 @@ export const Editor = ({
 
   function updateShapeById(
     id: number,
-    modifier: (oldShape: ShapeWithoutPostId) => ShapeWithoutPostId
+    modifier: (oldShape: ShapeWithoutPostId) => Partial<ShapeWithoutPostId>
   ) {
     setShapes((prev) => {
       // Normal movement
       return prev.map((s) => {
         if (s.id === id) {
-          return modifier(s);
+          return { ...s, ...modifier(s) };
         }
         return s;
       });
@@ -221,8 +221,7 @@ export const Editor = ({
         onDragStart={(e) => {
           if (typeof e.active.id === "number") {
             // Normal movement
-            updateShapeById(e.active.id, (s) => ({
-              ...s,
+            updateShapeById(e.active.id, () => ({
               zIndex: Math.max(...shapes.map((x) => x.zIndex), 0) + 1,
             }));
             setActiveShapeId(e.active.id);
@@ -236,7 +235,6 @@ export const Editor = ({
           if (typeof e.active.id === "number") {
             // Normal movement
             updateShapeById(e.active.id, (s) => ({
-              ...s,
               left: s.left + e.delta.x,
               top: s.top + e.delta.y,
             }));
@@ -246,38 +244,32 @@ export const Editor = ({
             // side resize
             if (e.active.id.endsWith("_handleResizeRight")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 width: Math.max(MIN_SIZE, s.width + e.delta.x),
               }));
             } else if (e.active.id.endsWith("_handleResizeLeft")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 left: s.left + Math.min(s.width - MIN_SIZE, e.delta.x),
                 width: Math.max(MIN_SIZE, s.width - e.delta.x),
               }));
             } else if (e.active.id.endsWith("_handleResizeTop")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 top: s.top + Math.min(s.height - MIN_SIZE, e.delta.y),
                 height: Math.max(MIN_SIZE, s.height - e.delta.y),
               }));
             } else if (e.active.id.endsWith("_handleResizeBottom")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 height: Math.max(MIN_SIZE, s.height + e.delta.y),
               }));
             }
             // corner resize
             else if (e.active.id.endsWith("_handleResizeTopRight")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 width: Math.max(MIN_SIZE, s.width + e.delta.x),
                 top: s.top + Math.min(s.height - MIN_SIZE, e.delta.y),
                 height: Math.max(MIN_SIZE, s.height - e.delta.y),
               }));
             } else if (e.active.id.endsWith("_handleResizeTopLeft")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 top: s.top + Math.min(s.height - MIN_SIZE, e.delta.y),
                 height: Math.max(MIN_SIZE, s.height - e.delta.y),
                 left: s.left + Math.min(s.width - MIN_SIZE, e.delta.x),
@@ -285,13 +277,11 @@ export const Editor = ({
               }));
             } else if (e.active.id.endsWith("_handleResizeBottomRight")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 height: Math.max(MIN_SIZE, s.height + e.delta.y),
                 width: Math.max(MIN_SIZE, s.width + e.delta.x),
               }));
             } else if (e.active.id.endsWith("_handleResizeBottomLeft")) {
               updateShapeById(id, (s) => ({
-                ...s,
                 height: Math.max(MIN_SIZE, s.height + e.delta.y),
                 left: s.left + Math.min(s.width - MIN_SIZE, e.delta.x),
                 width: Math.max(MIN_SIZE, s.width - e.delta.x),

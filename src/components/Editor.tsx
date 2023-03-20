@@ -339,8 +339,7 @@ export const Editor = ({
                 key={color}
                 onClick={() => {
                   if (activeShapeId !== -1) {
-                    updateShapeById(activeShapeId, (oldShape) => ({
-                      ...oldShape,
+                    updateShapeById(activeShapeId, () => ({
                       color: color,
                     }));
                   }

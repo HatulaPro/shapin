@@ -7,7 +7,12 @@ import {
   type SetStateAction,
   type Dispatch,
 } from "react";
-import { cx, getTodaysImageDate, getTodaysImageURL } from "~/utils/general";
+import {
+  cx,
+  getTodaysImageDate,
+  getTodaysImageURL,
+  handleFileDrop,
+} from "~/utils/general";
 import { CircleIcon } from "./icons/CircleIcon";
 import { ClearIcon } from "./icons/ClearIcon";
 import { ColorIcon } from "./icons/ColorIcon";
@@ -207,13 +212,7 @@ export const Editor = ({
       )}
       onDrop={(e) => {
         e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-          if (typeof reader.result === "string") setBackground(reader.result);
-        };
+        handleFileDrop(e, setBackground);
       }}
       onDragOver={(e) => e.preventDefault()}
     >

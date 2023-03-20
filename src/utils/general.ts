@@ -1,3 +1,5 @@
+import type { DragEvent } from "react";
+
 export function cx(...things: (string | undefined | null | false)[]) {
   return things.join(" ");
 }
@@ -34,4 +36,17 @@ export function getTodaysImageURL() {
   return `/api/images/get_image/${getTodaysImageDate()
     .toISOString()
     .slice(0, 10)}`;
+}
+
+export function handleFileDrop(
+  e: DragEvent<HTMLDivElement>,
+  callback: (s: string) => void
+) {
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => {
+    if (typeof reader.result === "string") callback(reader.result);
+  };
 }

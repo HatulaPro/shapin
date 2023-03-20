@@ -320,7 +320,6 @@ export const Editor = ({
         >
           {shapes.length < 20 ? (
             <>
-              {" "}
               <button onClick={() => addShape("SQUARE")}>
                 <SquareIcon style={{ color: "white" }} />
               </button>

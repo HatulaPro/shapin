@@ -10,6 +10,7 @@ import { type ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
 import { Loading } from "~/components/Loading";
 import {
+  cx,
   getTodaysImageDate,
   getTodaysImageURL,
   timeAgo,
@@ -156,16 +157,35 @@ const PostsViewer = () => {
             {post.post.attempting && (
               <SubmissionFor date={post.post.attempting} />
             )}
-            <div className="flex items-center justify-center p-1">
-              <button className="flex items-center gap-1 rounded-md p-1 text-lg transition-all hover:bg-white/10">
-                <LikeIcon className="text-2xl text-red-500" />
-                {post.likesCount}
-              </button>
-            </div>
+            <PostSocialSection
+              postId={post.post.id}
+              likesCount={post.likesCount}
+              liked={false}
+            />
           </div>
         );
       })}
       <Loading loading={isLoading} />
+    </div>
+  );
+};
+
+const PostSocialSection = ({
+  likesCount,
+  liked,
+}: {
+  postId: number;
+  likesCount: number;
+  liked: boolean;
+}) => {
+  return (
+    <div className="flex items-center justify-center p-1">
+      <button className="flex items-center gap-1 rounded-md p-1 text-lg transition-all hover:bg-white/10">
+        <LikeIcon
+          className={cx("text-2xl", liked ? "text-red-500" : "text-red-200")}
+        />
+        {likesCount}
+      </button>
     </div>
   );
 };

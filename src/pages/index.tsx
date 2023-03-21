@@ -26,7 +26,7 @@ const Home: NextPage = () => {
       <Head>
         <title>Shapin</title>
         <meta name="description" content="Shapin home page" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/logo.png" />
       </Head>
       <Header />
       <main className="min-h-screen bg-black p-4 text-white">

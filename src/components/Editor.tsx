@@ -66,10 +66,7 @@ const InteractiveEditor = ({
   );
   return (
     <div
-      className="relative aspect-square w-full border-2 border-white/20 bg-opacity-60 bg-contain bg-center bg-no-repeat"
-      style={{
-        backgroundImage: background ? `url(${background})` : undefined,
-      }}
+      className="group relative aspect-square w-full border-2 border-white/20 bg-opacity-60 bg-contain bg-center bg-no-repeat hover:bg-opacity-0"
       ref={setNodeRef}
     >
       {shapes.map((shape) => (
@@ -79,6 +76,14 @@ const InteractiveEditor = ({
           shape={shape}
         />
       ))}
+      {background && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={background}
+          className="pointer-events-none absolute z-[99999] h-full w-full opacity-0 transition-all group-hover:opacity-50"
+          alt="That day's image"
+        />
+      )}
     </div>
   );
 };

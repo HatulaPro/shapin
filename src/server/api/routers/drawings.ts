@@ -10,7 +10,7 @@ import {
   posts,
   likes,
 } from "~/db/schema";
-import { eq, lt, inArray, desc } from "drizzle-orm/expressions";
+import { eq, lt, inArray, desc, and } from "drizzle-orm/expressions";
 
 import {
   createTRPCRouter,
@@ -129,15 +129,15 @@ export const drawingsRouter = createTRPCRouter({
       const uid = ctx.session?.userId || "";
       const didUserLikeQuery = db
         .select({
-          post_id: posts.id,
+          post_id: likes.post_id,
           didUserLike: sql<number>`count(${likes.post_id})::int`.as(
             "didUserLike"
           ),
         })
         .from(posts)
-        .leftJoin(likes, eq(likes.post_id, posts.id))
-        .where(eq(likes.user_id, uid))
-        .groupBy(posts.id)
+        .leftJoin(likes, eq(posts.id, likes.post_id))
+        .where(and(eq(posts.id, likes.post_id), eq(likes.user_id, uid)))
+        .groupBy(posts.id, likes.post_id)
         .as("didUserLikeQuery");
       const postsRes = await db
         .select({
@@ -151,7 +151,7 @@ export const drawingsRouter = createTRPCRouter({
         .leftJoin(shapes, eq(shapes.post_id, posts.id))
         .leftJoin(images, eq(images.date, posts.attempting))
         .leftJoin(likesCountQuery, eq(likesCountQuery.post_id, posts.id))
-        .leftJoin(didUserLikeQuery, eq(likesCountQuery.post_id, posts.id))
+        .leftJoin(didUserLikeQuery, eq(didUserLikeQuery.post_id, posts.id))
         .where(
           inArray(
             posts.id,

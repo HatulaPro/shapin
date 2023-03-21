@@ -113,8 +113,8 @@ export const drawingsRouter = createTRPCRouter({
         cursor: z.date().nullish(),
       })
     )
-    .query(async ({ input }) => {
-      const likesQuery = db
+    .query(async ({ input, ctx }) => {
+      const likesCountQuery = db
         .select({
           post_id: posts.id,
           likesCount: sql<number>`count(${likes.post_id})::int`.as(
@@ -124,18 +124,34 @@ export const drawingsRouter = createTRPCRouter({
         .from(posts)
         .leftJoin(likes, eq(likes.post_id, posts.id))
         .groupBy(posts.id)
-        .as("likesQuery");
+        .as("likesCountQuery");
+
+      const uid = ctx.session?.userId || "";
+      const didUserLikeQuery = db
+        .select({
+          post_id: posts.id,
+          didUserLike: sql<number>`count(${likes.post_id})::int`.as(
+            "didUserLike"
+          ),
+        })
+        .from(posts)
+        .leftJoin(likes, eq(likes.post_id, posts.id))
+        .where(eq(likes.user_id, uid))
+        .groupBy(posts.id)
+        .as("didUserLikeQuery");
       const postsRes = await db
         .select({
           post: posts,
           image: images,
           shape: shapes,
-          likesCount: likesQuery.likesCount,
+          likesCount: likesCountQuery.likesCount,
+          liked: didUserLikeQuery.didUserLike,
         })
         .from(posts)
         .leftJoin(shapes, eq(shapes.post_id, posts.id))
         .leftJoin(images, eq(images.date, posts.attempting))
-        .leftJoin(likesQuery, eq(likesQuery.post_id, posts.id))
+        .leftJoin(likesCountQuery, eq(likesCountQuery.post_id, posts.id))
+        .leftJoin(didUserLikeQuery, eq(likesCountQuery.post_id, posts.id))
         .where(
           inArray(
             posts.id,
@@ -159,10 +175,11 @@ export const drawingsRouter = createTRPCRouter({
                 image: DailyImage | null;
                 shapes: Shape[];
                 likesCount: number;
+                liked: boolean;
               }
             >
           >((acc, row) => {
-            const { shape, image, post, likesCount } = row;
+            const { shape, image, post, likesCount, liked } = row;
 
             if (!acc.has(post.id)) {
               acc.set(post.id, {
@@ -170,19 +187,23 @@ export const drawingsRouter = createTRPCRouter({
                 shapes: [],
                 image: null,
                 likesCount: 0,
+                liked: false,
               });
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const currentEntry = acc.get(post.id)!;
             if (shape) {
-              acc.get(post.id)?.shapes.push(shape);
+              currentEntry.shapes.push(shape);
             }
             if (image) {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              acc.get(post.id)!.image = image;
+              currentEntry.image = image;
             }
             if (likesCount) {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              acc.get(post.id)!.likesCount = likesCount;
+              currentEntry.likesCount = likesCount;
+            }
+            if (liked) {
+              currentEntry.liked = Boolean(liked);
             }
 
             return acc;

@@ -160,7 +160,7 @@ const PostsViewer = () => {
             <PostSocialSection
               postId={post.post.id}
               likesCount={post.likesCount}
-              liked={false}
+              liked={post.liked}
             />
           </div>
         );

@@ -1,4 +1,9 @@
-import { type InferModel, pgTable, index } from "drizzle-orm/pg-core";
+import {
+  type InferModel,
+  pgTable,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import {
   timestamp,
   serial,
@@ -69,8 +74,27 @@ export const shapes = pgTable(
     };
   }
 );
+
+export const likes = pgTable(
+  "likes",
+  {
+    post_id: serial("post_id")
+      .notNull()
+      .references(() => posts.id, {
+        onDelete: "cascade",
+      }),
+    user_id: text("user_id").notNull(),
+  },
+  (likes) => {
+    return {
+      likesIndex: uniqueIndex("likes_idx").on(likes.post_id, likes.user_id),
+    };
+  }
+);
+
 export type Shape = InferModel<typeof shapes>;
 export type ShapeWithoutPostId = Omit<Shape, "post_id">;
 
 export type Post = InferModel<typeof posts>;
 export type DailyImage = InferModel<typeof images>;
+export type Like = InferModel<typeof likes>;

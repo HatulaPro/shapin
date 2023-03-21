@@ -8,6 +8,7 @@ import {
   images,
   shapes,
   posts,
+  likes,
 } from "~/db/schema";
 import { eq, lt, inArray, desc } from "drizzle-orm/expressions";
 
@@ -17,6 +18,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { clerkClient } from "@clerk/nextjs/server";
+import { sql } from "drizzle-orm";
 
 export const drawingsRouter = createTRPCRouter({
   createDrawing: protectedProcedure
@@ -112,15 +114,28 @@ export const drawingsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
+      const likesQuery = db
+        .select({
+          post_id: posts.id,
+          likesCount: sql<number>`count(${likes.post_id})::int`.as(
+            "likesCount"
+          ),
+        })
+        .from(posts)
+        .leftJoin(likes, eq(likes.post_id, posts.id))
+        .groupBy(posts.id)
+        .as("likesQuery");
       const postsRes = await db
         .select({
           post: posts,
           image: images,
           shape: shapes,
+          likesCount: likesQuery.likesCount,
         })
         .from(posts)
         .leftJoin(shapes, eq(shapes.post_id, posts.id))
         .leftJoin(images, eq(images.date, posts.attempting))
+        .leftJoin(likesQuery, eq(likesQuery.post_id, posts.id))
         .where(
           inArray(
             posts.id,
@@ -139,13 +154,23 @@ export const drawingsRouter = createTRPCRouter({
           .reduce<
             Map<
               number,
-              { post: Post; image: DailyImage | null; shapes: Shape[] }
+              {
+                post: Post;
+                image: DailyImage | null;
+                shapes: Shape[];
+                likesCount: number;
+              }
             >
           >((acc, row) => {
-            const { shape, image, post } = row;
+            const { shape, image, post, likesCount } = row;
 
             if (!acc.has(post.id)) {
-              acc.set(post.id, { post, shapes: [], image: null });
+              acc.set(post.id, {
+                post,
+                shapes: [],
+                image: null,
+                likesCount: 0,
+              });
             }
 
             if (shape) {
@@ -154,6 +179,10 @@ export const drawingsRouter = createTRPCRouter({
             if (image) {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               acc.get(post.id)!.image = image;
+            }
+            if (likesCount) {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              acc.get(post.id)!.likesCount = likesCount;
             }
 
             return acc;

@@ -17,6 +17,7 @@ import {
 import { DraggableBackground } from "~/components/DraggableBackground";
 import { SubmissionFor } from "~/components/SubmissionFor";
 import { ProfileImage } from "~/components/ProfileImage";
+import { LikeIcon } from "~/components/icons/LikeIcon";
 
 const Home: NextPage = () => {
   return (
@@ -155,6 +156,12 @@ const PostsViewer = () => {
             {post.post.attempting && (
               <SubmissionFor date={post.post.attempting} />
             )}
+            <div className="flex items-center justify-center p-1">
+              <button className="flex items-center gap-1 rounded-md p-1 text-lg transition-all hover:bg-white/10">
+                <LikeIcon className="text-2xl text-red-500" />
+                {post.likesCount}
+              </button>
+            </div>
           </div>
         );
       })}

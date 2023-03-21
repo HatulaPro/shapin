@@ -178,9 +178,13 @@ const PostSocialSection = ({
   likesCount: number;
   liked: boolean;
 }) => {
+  const { user } = useClerk();
   return (
     <div className="flex items-center justify-center p-1">
-      <button className="flex items-center gap-1 rounded-md p-1 text-lg transition-all hover:bg-white/10">
+      <button
+        disabled={!Boolean(user)}
+        className="flex items-center gap-1 rounded-md p-1 text-lg transition-all enabled:hover:bg-white/10"
+      >
         <LikeIcon
           className={cx("text-2xl", liked ? "text-red-500" : "text-red-200")}
         />

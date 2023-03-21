@@ -242,9 +242,25 @@ const PostSocialSection = ({
           }
         }}
       >
-        <LikeIcon
-          className={cx("text-2xl", liked ? "text-red-500" : "text-red-200")}
-        />
+        <div className="relative grid place-items-center">
+          {liked &&
+            [0, 1, 2, 3, 4, 5].map((x) => (
+              <div
+                key={x}
+                className={cx(
+                  "like-animation absolute z-20 h-3 w-0.5 bg-red-500 transition-all"
+                )}
+                style={
+                  {
+                    "--rotate": `${60 * x}deg`,
+                  } as React.CSSProperties
+                }
+              ></div>
+            ))}
+          <LikeIcon
+            className={cx("text-2xl", liked ? "text-red-500" : "text-red-200")}
+          />
+        </div>
         {likesCount}
       </button>
     </div>

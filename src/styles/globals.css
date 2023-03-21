@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes LikeAnimation {
+  0% {
+    transform: rotate(var(--rotate)) translateY(0px);
+  }
+  50% {
+    transform: rotate(var(--rotate)) translateY(20px);
+  }
+  100% {
+    transform: rotate(var(--rotate)) translateY(0px);
+  }
+}
+
+.like-animation {
+  transform: rotate(var(--rotate));
+  animation: LikeAnimation 0.5s ease-in-out;
+  animation-fill-mode: forwards;
+}

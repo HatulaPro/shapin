@@ -103,9 +103,37 @@ const usePosts = () => {
       }, []) || []
     );
   }, [getPostsQuery]);
+
+  const utils = api.useContext();
+  function updatePostOptimistic(
+    id: number,
+    modifier: (
+      p: (typeof flattenedPosts)[number]
+    ) => (typeof flattenedPosts)[number]
+  ) {
+    utils.drawings.getDrawings.setInfiniteData({ count: 15 }, (data) => {
+      if (!data) return data;
+      return {
+        ...data,
+        pages: data.pages.map((page) => {
+          return {
+            ...page,
+            posts: page.posts.map((post) => {
+              if (post.post.id === id) {
+                return modifier(post);
+              }
+              return post;
+            }),
+          };
+        }),
+      };
+    });
+  }
+
   return {
     posts: flattenedPosts,
     isLoading: getPostsQuery.isLoading,
+    updatePostOptimistic,
   };
 };
 
@@ -180,7 +208,26 @@ const PostSocialSection = ({
   liked: boolean;
 }) => {
   const { user } = useClerk();
-  const likePostMutation = api.likes.likeDrawing.useMutation({});
+  const { updatePostOptimistic } = usePosts();
+  const likePostMutation = api.likes.likeDrawing.useMutation({
+    onMutate({ post_id }) {
+      updatePostOptimistic(post_id, (p) => ({
+        ...p,
+        liked: true,
+        likesCount: p.likesCount + 1,
+      }));
+    },
+  });
+
+  const unlikePostMutation = api.likes.unlikeDrawing.useMutation({
+    onMutate({ post_id }) {
+      updatePostOptimistic(post_id, (p) => ({
+        ...p,
+        liked: false,
+        likesCount: p.likesCount - 1,
+      }));
+    },
+  });
 
   return (
     <div className="flex items-center justify-center p-1">
@@ -188,7 +235,11 @@ const PostSocialSection = ({
         disabled={!Boolean(user)}
         className="flex items-center gap-1 rounded-md p-1 text-lg transition-all enabled:hover:bg-white/10"
         onClick={() => {
-          likePostMutation.mutate({ post_id: postId });
+          if (liked) {
+            unlikePostMutation.mutate({ post_id: postId });
+          } else {
+            likePostMutation.mutate({ post_id: postId });
+          }
         }}
       >
         <LikeIcon

@@ -1,9 +1,10 @@
 import { useClerk } from "@clerk/nextjs";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
 import { timeAgo, cx } from "~/utils/general";
 import { DraggableBackground } from "./DraggableBackground";
+import { DownloadIcon } from "./icons/DownloadIcon";
 import { LikeIcon } from "./icons/LikeIcon";
 import { Loading } from "./Loading";
 import { ProfileImage } from "./ProfileImage";
@@ -181,8 +182,10 @@ const PostSocialSection = ({
     },
   });
 
+  const loadingBlueBarDiv = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="flex items-center justify-center p-1">
+    <div className="flex items-center justify-center gap-4 p-1">
       <button
         disabled={!Boolean(user)}
         className="flex items-center gap-1 rounded-md p-1 text-lg transition-all enabled:hover:bg-white/10"
@@ -215,6 +218,36 @@ const PostSocialSection = ({
         </div>
         {likesCount}
       </button>
+      <a
+        href={`/api/images/export_image/${postId}`}
+        download
+        onClick={() => {
+          loadingBlueBarDiv.current?.animate(
+            [
+              {
+                width: "0%",
+              },
+              {
+                width: "100%",
+              },
+            ],
+            {
+              duration: 300,
+              direction: "alternate",
+              easing: "ease",
+              iterations: 6,
+            }
+          );
+        }}
+      >
+        <button className="flex flex-col items-center gap-0.5 rounded-md p-1 transition-all enabled:hover:bg-white/10">
+          <DownloadIcon className="text-2xl" />
+          <div
+            ref={loadingBlueBarDiv}
+            className="h-0.5 w-0 rounded-sm bg-blue-500"
+          ></div>
+        </button>
+      </a>
     </div>
   );
 };

@@ -115,6 +115,19 @@ export const drawingsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
+      if (input.date) {
+        const todaysImage = await db
+          .select()
+          .from(images)
+          .where(eq(images.date, input.date))
+          .execute();
+        if (!todaysImage[0]) {
+          throw new TRPCError({
+            message: "The challenge for this date does not exist.",
+            code: "NOT_FOUND",
+          });
+        }
+      }
       const likesCountQuery = db
         .select({
           post_id: posts.id,

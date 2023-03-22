@@ -7,6 +7,7 @@ import { DraggableBackground } from "./DraggableBackground";
 import { DownloadIcon } from "./icons/DownloadIcon";
 import { LikeIcon } from "./icons/LikeIcon";
 import { Loading } from "./Loading";
+import { NotFound } from "./NotFound";
 import { ProfileImage } from "./ProfileImage";
 import { SubmissionFor } from "./SubmissionFor";
 
@@ -18,6 +19,7 @@ export const usePosts = (date?: Date) => {
     },
     {
       getNextPageParam: (lastData) => lastData.nextCursor,
+      retry: false,
     }
   );
 
@@ -84,14 +86,18 @@ export const usePosts = (date?: Date) => {
     posts: flattenedPosts,
     isLoading: getPostsQuery.isLoading,
     updatePostOptimistic,
+    error: getPostsQuery.error,
   };
 };
 
 export const PostsViewer = ({ date }: { date?: Date }) => {
-  const { posts, isLoading, updatePostOptimistic } = usePosts(date);
+  const { posts, isLoading, updatePostOptimistic, error } = usePosts(date);
 
   return (
     <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
+      {error?.data?.code === "NOT_FOUND" && (
+        <NotFound message={error.message} />
+      )}
       {posts?.map((post) => {
         return (
           <div

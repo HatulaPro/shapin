@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { formatDate } from "~/utils/general";
 import { HashIcon } from "./icons/HashIcon";
 
 export const SubmissionFor = ({ date }: { date: Date }) => {
-  const dateString = date.toISOString().slice(0, 10);
+  const dateString = formatDate(date);
   return (
     <Link
       className="group block text-center text-sm text-indigo-400"

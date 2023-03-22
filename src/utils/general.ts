@@ -4,6 +4,10 @@ export function cx(...things: (string | undefined | null | false)[]) {
   return things.join(" ");
 }
 
+export function formatDate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
 export function timeAgo(date: Date) {
   const now = new Date().getTime();
   const millisDiff = now - date.getTime();
@@ -33,9 +37,7 @@ export function getTodaysImageDate() {
   return today;
 }
 export function getTodaysImageURL() {
-  return `/api/images/get_image/${getTodaysImageDate()
-    .toISOString()
-    .slice(0, 10)}`;
+  return `/api/images/get_image/${formatDate(getTodaysImageDate())}`;
 }
 
 export function handleFileDrop(

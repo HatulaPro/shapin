@@ -37,7 +37,10 @@ export default async function handler(req: NextRequest) {
   const postId = z
     .number()
     .parse(parseInt(req.nextUrl.searchParams.get("post_id") ?? "asd"));
-  const result = await fetch(`http://localhost:3000/api/posts/${postId}`);
+  const result = await fetch(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    `http://${req.headers.get("host")!}/api/posts/${postId}`
+  );
   const { post, error } = responseParser.parse(await result.json());
   if (error)
     return new Response(error, {

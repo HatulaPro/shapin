@@ -138,7 +138,7 @@ const usePosts = () => {
 };
 
 const PostsViewer = () => {
-  const { posts, isLoading } = usePosts();
+  const { posts, isLoading, updatePostOptimistic } = usePosts();
 
   return (
     <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
@@ -189,6 +189,7 @@ const PostsViewer = () => {
               postId={post.post.id}
               likesCount={post.likesCount}
               liked={post.liked}
+              updatePost={updatePostOptimistic}
             />
           </div>
         );
@@ -202,16 +203,17 @@ const PostSocialSection = ({
   postId,
   likesCount,
   liked,
+  updatePost,
 }: {
   postId: number;
   likesCount: number;
   liked: boolean;
+  updatePost: ReturnType<typeof usePosts>["updatePostOptimistic"];
 }) => {
   const { user } = useClerk();
-  const { updatePostOptimistic } = usePosts();
   const likePostMutation = api.likes.likeDrawing.useMutation({
     onMutate({ post_id }) {
-      updatePostOptimistic(post_id, (p) => ({
+      updatePost(post_id, (p) => ({
         ...p,
         liked: true,
         likesCount: p.likesCount + 1,
@@ -221,7 +223,7 @@ const PostSocialSection = ({
 
   const unlikePostMutation = api.likes.unlikeDrawing.useMutation({
     onMutate({ post_id }) {
-      updatePostOptimistic(post_id, (p) => ({
+      updatePost(post_id, (p) => ({
         ...p,
         liked: false,
         likesCount: p.likesCount - 1,

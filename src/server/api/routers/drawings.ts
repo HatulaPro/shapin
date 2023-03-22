@@ -110,6 +110,7 @@ export const drawingsRouter = createTRPCRouter({
     .input(
       z.object({
         count: z.number().min(4).max(50),
+        date: z.date().optional(),
         cursor: z.date().nullish(),
       })
     )
@@ -158,7 +159,12 @@ export const drawingsRouter = createTRPCRouter({
             db
               .select({ id: posts.id })
               .from(posts)
-              .where(lt(posts.created_at, input.cursor ?? new Date()))
+              .where(
+                and(
+                  lt(posts.created_at, input.cursor ?? new Date()),
+                  input.date && eq(posts.attempting, input.date)
+                )
+              )
               .orderBy(desc(posts.created_at))
               .limit(input.count)
           )

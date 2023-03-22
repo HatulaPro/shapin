@@ -7,7 +7,7 @@ import { SignedIn, useClerk } from "@clerk/nextjs";
 import { type ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
 import { Loading } from "~/components/Loading";
-import { getTodaysImageDate, getTodaysImageURL } from "~/utils/general";
+import { getTodaysImageURL } from "~/utils/general";
 import { ProfileImage } from "~/components/ProfileImage";
 import { Header } from "~/components/Header";
 import { PostsViewer } from "~/components/PostsViewer";
@@ -85,10 +85,7 @@ const CreatePostSection = () => {
             createPostMutation.mutate({
               shapes,
               title,
-              attemptingDate:
-                background === getTodaysImageURL()
-                  ? getTodaysImageDate()
-                  : undefined,
+              attemptingDate: background === getTodaysImageURL(),
             });
           } else {
             setActive(!isActive);

@@ -28,15 +28,7 @@ export const drawingsRouter = createTRPCRouter({
           .string()
           .min(4, "Title must contain at least 4 characters")
           .max(128, "Title must contain at most 128 characters"),
-        attemptingDate: z
-          .date()
-          .optional()
-          .transform((d) => {
-            if (d) {
-              d.setHours(0, 0, 0, 0);
-            }
-            return d;
-          }),
+        attemptingDate: z.boolean(),
         shapes: z
           .array(
             z.object({
@@ -71,7 +63,7 @@ export const drawingsRouter = createTRPCRouter({
               ? {
                   title: input.title,
                   user_id: userId,
-                  attempting: input.attemptingDate,
+                  attempting: new Date(),
                 }
               : {
                   title: input.title,

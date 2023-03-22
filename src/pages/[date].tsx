@@ -59,6 +59,7 @@ const ChallengePageMain = () => {
 
 const ChallengeInto = ({ date }: { date: Date }) => {
   const dateString = formatDate(date);
+  const router = useRouter();
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <h1 className="text-3xl">
@@ -72,6 +73,7 @@ const ChallengeInto = ({ date }: { date: Date }) => {
           height={320}
           alt={`The image for ${dateString}`}
           className="rounded-md"
+          onError={() => void router.replace("/")}
         />
         <div className="flex flex-col gap-2">
           {dateString === formatDate(getTodaysImageDate()) ? (

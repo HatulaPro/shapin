@@ -1,7 +1,6 @@
 import { useClerk } from "@clerk/nextjs";
 import { useEffect, useMemo } from "react";
 import type { ShapeWithoutPostId } from "~/db/schema";
-import { useRouterDate } from "~/pages/[date]";
 import { api } from "~/utils/api";
 import { timeAgo, cx } from "~/utils/general";
 import { DraggableBackground } from "./DraggableBackground";
@@ -10,16 +9,14 @@ import { Loading } from "./Loading";
 import { ProfileImage } from "./ProfileImage";
 import { SubmissionFor } from "./SubmissionFor";
 
-export const usePosts = (allowUndefinedDate?: boolean) => {
-  const { date, error } = useRouterDate();
+export const usePosts = (date?: Date) => {
   const getPostsQuery = api.drawings.getDrawings.useInfiniteQuery(
     {
       count: 15,
-      date: date ?? undefined,
+      date: date,
     },
     {
       getNextPageParam: (lastData) => lastData.nextCursor,
-      enabled: allowUndefinedDate ? true : error !== "invalid date",
     }
   );
 
@@ -35,10 +32,7 @@ export const usePosts = (allowUndefinedDate?: boolean) => {
         window.innerHeight + window.scrollY + 800 >
         document.body.offsetHeight
       ) {
-        if (allowUndefinedDate || error === null) {
-          void getPostsQuery.fetchNextPage();
-          console.log("refetch");
-        }
+        void getPostsQuery.fetchNextPage();
       }
     };
     window.addEventListener("scroll", listener);
@@ -46,7 +40,7 @@ export const usePosts = (allowUndefinedDate?: boolean) => {
     return () => {
       window.removeEventListener("scroll", listener);
     };
-  }, [getPostsQuery, allowUndefinedDate, error]);
+  }, [getPostsQuery]);
 
   const flattenedPosts = useMemo(() => {
     return (
@@ -89,17 +83,11 @@ export const usePosts = (allowUndefinedDate?: boolean) => {
     posts: flattenedPosts,
     isLoading: getPostsQuery.isLoading,
     updatePostOptimistic,
-    dateError: error,
   };
 };
 
-export const PostsViewer = ({
-  allowUndefinedDate,
-}: {
-  allowUndefinedDate: boolean;
-}) => {
-  const { posts, isLoading, updatePostOptimistic, dateError } =
-    usePosts(allowUndefinedDate);
+export const PostsViewer = ({ date }: { date?: Date }) => {
+  const { posts, isLoading, updatePostOptimistic } = usePosts(date);
 
   return (
     <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
@@ -156,8 +144,7 @@ export const PostsViewer = ({
           </div>
         );
       })}
-      {dateError !== "invalid date" && <Loading loading={isLoading} />}
-      {dateError === "invalid date" && <div>Invalid Date. </div>}
+      <Loading loading={isLoading} />
     </div>
   );
 };

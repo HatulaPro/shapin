@@ -29,10 +29,17 @@ const ChallengePage: NextPage = () => {
         <link rel="icon" href="/logo.png" />
       </Head>
       <Header />
-      <main className="min-h-screen bg-black p-4 text-white">
-        <PostsViewer allowUndefinedDate={false} />
-      </main>
+      <ChallengePageMain />
     </>
+  );
+};
+
+const ChallengePageMain = () => {
+  const { date } = useRouterDate();
+  return (
+    <main className="min-h-screen bg-black p-4 text-white">
+      {date ? <PostsViewer date={date} /> : <div>Invalid Date.</div>}
+    </main>
   );
 };
 

@@ -1,4 +1,6 @@
 import { useClerk } from "@clerk/nextjs";
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import type { ShapeWithoutPostId } from "~/db/schema";
 import { api } from "~/utils/api";
@@ -98,6 +100,9 @@ export const PostsViewer = ({ date }: { date?: Date }) => {
       {error?.data?.code === "NOT_FOUND" && (
         <NotFound message={error.message} />
       )}
+      {error === null && isLoading === false && posts.length === 0 && (
+        <NoPostsError />
+      )}
       {posts?.map((post) => {
         return (
           <div
@@ -152,6 +157,32 @@ export const PostsViewer = ({ date }: { date?: Date }) => {
         );
       })}
       <Loading loading={isLoading} />
+    </div>
+  );
+};
+
+const NoPostsError = () => {
+  return (
+    <div className="mt-4 flex flex-col items-center gap-4 rounded-md bg-red-900/80 p-4 text-center">
+      <Image
+        src="/sad.png"
+        width={172}
+        height={172}
+        className="rounded-full"
+        alt="sadness Image"
+      />
+
+      <h2 className="mb-2 text-xl font-bold">
+        No one bothered to post anything
+      </h2>
+      <p className="text-lg">
+        You think these posts make themselves? You&apos;re wrong then. They
+        don&apos;t.{" "}
+        <Link href="/" className="hover:underline">
+          Go make one
+        </Link>
+        .
+      </p>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { NextPage } from "next";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Header } from "~/components/Header";
 import { PostsViewer } from "~/components/PostsViewer";
@@ -38,7 +39,16 @@ const ChallengePageMain = () => {
   const { date } = useRouterDate();
   return (
     <main className="min-h-screen bg-black p-4 text-white">
-      {date ? <PostsViewer date={date} /> : <div>Invalid Date.</div>}
+      {date ? (
+        <PostsViewer date={date} />
+      ) : (
+        <div className="my-auto grid place-items-center">
+          <p>Invalid Date.</p>
+          <Link href="/" className="text-indigo-400 hover:underline">
+            Go Back
+          </Link>
+        </div>
+      )}
     </main>
   );
 };

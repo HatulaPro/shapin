@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { NextPage } from "next";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Header } from "~/components/Header";
 import { NotFound } from "~/components/NotFound";
 import { PostsViewer } from "~/components/PostsViewer";
+import {
+  formatDate,
+  getImageURLByDate,
+  getTodaysImageDate,
+} from "~/utils/general";
 
 export const useRouterDate = () => {
   const router = useRouter();
@@ -40,11 +46,55 @@ const ChallengePageMain = () => {
   return (
     <main className="min-h-screen bg-black p-4 text-white">
       {date ? (
-        <PostsViewer date={date} />
+        <>
+          <ChallengeInto date={date} />
+          <PostsViewer date={date} />
+        </>
       ) : (
         error === "invalid date" && <NotFound />
       )}
     </main>
+  );
+};
+
+const ChallengeInto = ({ date }: { date: Date }) => {
+  const dateString = formatDate(date);
+  return (
+    <div className="flex flex-col items-center gap-4 p-4">
+      <h1 className="text-3xl">
+        <b className="text-indigo-400">{dateString}</b>&apos;s Challenge
+      </h1>
+      <div className="flex gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={getImageURLByDate(date)}
+          width={320}
+          height={320}
+          alt={`The image for ${dateString}`}
+          className="rounded-md"
+        />
+        <div className="flex flex-col gap-2">
+          {dateString === formatDate(getTodaysImageDate()) ? (
+            <>
+              <p>View our artists&apos; creations!</p>
+              <Link href="/">
+                <button>Create</button>
+              </Link>
+              <span className="mt-auto ml-auto w-fit rounded-full bg-green-700 py-1 px-2 text-sm">
+                SUBMISSIONS ARE STILL OPEN
+              </span>
+            </>
+          ) : (
+            <>
+              <p>View our artists&apos; creations!</p>
+              <span className="mt-auto ml-auto w-fit rounded-full bg-red-700 py-1 px-2 text-sm">
+                SUBMISSIONS ARE CLOSED
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

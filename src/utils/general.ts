@@ -33,11 +33,13 @@ export function timeAgo(date: Date) {
 
 export function getTodaysImageDate() {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
   return today;
 }
 export function getTodaysImageURL() {
-  return `/api/images/get_image/${formatDate(getTodaysImageDate())}`;
+  return getImageURLByDate(getTodaysImageDate());
+}
+export function getImageURLByDate(d: Date) {
+  return `/api/images/get_image/${formatDate(d)}`;
 }
 
 export function handleFileDrop(

@@ -66,7 +66,7 @@ const ChallengeInto = ({ date }: { date: Date }) => {
       <h1 className="text-3xl">
         <b className="text-indigo-400">{dateString}</b>&apos;s Challenge
       </h1>
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={getImageURLByDate(date)}

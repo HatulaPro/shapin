@@ -4,6 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Header } from "~/components/Header";
+import { ArrowRightIcon } from "~/components/icons/ArrowRight";
 import { NotFound } from "~/components/NotFound";
 import { PostsViewer } from "~/components/PostsViewer";
 import {
@@ -79,17 +80,20 @@ const ChallengeInto = ({ date }: { date: Date }) => {
           {dateString === formatDate(getTodaysImageDate()) ? (
             <>
               <p>View our artists&apos; creations!</p>
-              <Link href="/">
-                <button>Create</button>
+              <Link href="/" className="group mt-auto w-fit hover:underline">
+                <button className="flex items-center gap-2 rounded-md bg-white/10 p-1 px-3 transition-all group-hover:bg-white/20">
+                  Create{" "}
+                  <ArrowRightIcon className="transition-all group-hover:translate-x-1" />
+                </button>
               </Link>
-              <span className="mt-auto ml-auto w-fit rounded-full bg-green-700 py-1 px-2 text-sm">
-                SUBMISSIONS ARE STILL OPEN
+              <span className="ml-auto w-fit rounded-full bg-green-800 py-1 px-2 text-sm font-bold">
+                SUBMISSIONS ARE OPEN
               </span>
             </>
           ) : (
             <>
               <p>View our artists&apos; creations!</p>
-              <span className="mt-auto ml-auto w-fit rounded-full bg-red-700 py-1 px-2 text-sm">
+              <span className="mt-auto ml-auto w-fit rounded-full bg-red-800 py-1 px-2 text-sm font-bold">
                 SUBMISSIONS ARE CLOSED
               </span>
             </>

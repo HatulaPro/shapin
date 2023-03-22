@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Header } from "~/components/Header";
@@ -43,7 +44,10 @@ const ChallengePageMain = () => {
         <PostsViewer date={date} />
       ) : (
         <div className="my-auto grid place-items-center">
-          <p>Invalid Date.</p>
+          <Image src="/404.png" width={256} height={256} alt="404 Image" />
+          <p>
+            Not sure what you were looking for, but we couldn&apos;t find it.
+          </p>
           <Link href="/" className="text-indigo-400 hover:underline">
             Go Back
           </Link>

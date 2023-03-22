@@ -12,13 +12,22 @@ export default async function handler(
 
   const url = image.url;
   try {
-    const result = await db
-      .insert(images)
-      .values({
-        url,
-      })
-      .returning()
-      .execute();
+    const result = (
+      await db
+        .insert(images)
+        .values({
+          url,
+        })
+        .returning()
+        .execute()
+    )[0];
+
+    if (!result) {
+      return res.json({
+        success: false,
+        error: "An error has occured",
+      });
+    }
     return res.json({ success: true, result });
   } catch {
     return res.json({

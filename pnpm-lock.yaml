@@ -8,7 +8,7 @@ specifiers:
   '@trpc/client': ^10.9.0
   '@trpc/next': ^10.9.0
   '@trpc/react-query': ^10.9.0
-  '@trpc/server': ^10.9.0
+  '@trpc/server': ^10.16.0
   '@types/eslint': ^8.21.1
   '@types/node': ^18.14.0
   '@types/pg': ^8.6.6

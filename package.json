@@ -17,7 +17,7 @@
     "@trpc/client": "^10.9.0",
     "@trpc/next": "^10.9.0",
     "@trpc/react-query": "^10.9.0",
-    "@trpc/server": "^10.9.0",
+    "@trpc/server": "^10.16.0",
     "@vercel/og": "^0.4.0",
     "dotenv": "^16.0.3",
     "drizzle-orm": "^0.21.1",
